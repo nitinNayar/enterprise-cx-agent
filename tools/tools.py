@@ -10,6 +10,23 @@ tools_schema = [
             "required": ["order_id"]
         } 
     },
+
+    {
+        "name": "get_policy_info",
+        "description": "Retrieve the official policy text for a specific topic. MANDATORY step before processing any refund.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "policy_type": {
+                    "type": "string", 
+                    "enum": ["returns", "shipping", "privacy"],
+                    "description": "The specific policy document to read."
+                }
+            },
+            "required": ["policy_type"]
+        }
+    },    
+
     {
         "name": "execute_order_return",
         "description": "process the refund. RESTRICTED: only use if eligible_for_return is true",
@@ -22,6 +39,7 @@ tools_schema = [
             "required": ["order_id", "reason"]
         }
     },
+    
     {
         "name": "escalate_to_human",
         "description": "Escalate to human. Use this if a customer is angry or request if out of policy",
