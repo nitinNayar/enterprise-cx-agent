@@ -54,7 +54,7 @@ graph TD
 
 ```bash
 # Clone the repo
-git clone [https://github.com/yourusername/enterprise-cx-agent.git](https://github.com/yourusername/enterprise-cx-agent.git)
+git clone https://github.com/yourusername/enterprise-cx-agent.git
 cd enterprise-cx-agent
 
 # Install dependencies
@@ -119,7 +119,3 @@ Use these inputs to test the **Guardrails**, **Tool Use**, and **Policy Enforcem
 2. **Agent:** (Checks OMS -> Sees `Eligible: True`)
 3. **Agent:** (Reads `return_policy.md`) "Wait, the policy states socks are **Final Sale**."
 4. **Agent:** "I cannot return these. For hygiene reasons, socks are non-returnable despite being within the time window."
-
-```
-
-```
