@@ -1,3 +1,9 @@
 anthropic
 chainlit
 python-dotenv
+ 
+# Observability Stack 
+arize-phoenix
+openinference-instrumentation-anthropic
+opentelemetry-sdk
+opentelemetry-exporter-otlp 

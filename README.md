@@ -93,8 +93,16 @@ Use these inputs to test the **Guardrails**, **Tool Use**, and **Policy Enforcem
 1. **User:** "I want to return my order."
 2. **Agent:** "Sure, what is the order ID?"
 3. **User:** `ORD-123`
-4. **Agent:** (Checks OMS) "I see the Wireless Headphones. They are eligible. Reason?"
-5. **User:** "It's broken."
+4. **Agent:** (Checks OMS) "Thank you! I've looked up your order ORD-123. I can see you ordered **Wireless Headphones** and the order has been shipped.
+
+    Before I proceed with your return, I need to verify our return policy and ask you a few questions:
+
+    (1) **What is the reason for your return?** (e.g., defective, changed mind, wrong item, etc.)
+    (2) **Have you opened or used the headphones?**
+
+    Let me also pull up our official return policy to ensure we can process this correctly."
+5. **User:** "Order received to late. We missed the party and need to return it.
+I have note opened it- its still in its packing."
 6. **Agent:** (Executes Refund) "Refund processed."
 
 ### Scenario B: The Policy Guardrail (Database Rejection)

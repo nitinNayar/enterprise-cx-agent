@@ -1,5 +1,9 @@
 import chainlit as cl
 from agent.agent import SupportAgent
+from observability.tracing import setup_phoenix_tracing 
+
+# Initialize Tracing ONCE at startup
+setup_phoenix_tracing()
 
 @cl.on_chat_start
 def start():
