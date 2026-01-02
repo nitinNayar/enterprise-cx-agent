@@ -160,3 +160,22 @@ logs/
 .chainlit/chat_files/
 .chainlit/.langchain.db
 .chainlit/cache/
+
+
+# -------------------------
+# Project Specific Artifacts
+# -------------------------
+
+# Audit Logs (Generated at runtime by structlog)
+# We commit the folder structure logic, but NOT the actual log files
+audit_logs/
+*.jsonl
+
+# Arize Phoenix & OpenTelemetry
+# If Phoenix is configured to persist data locally (DuckDB/SQLite)
+phoenix_storage/
+*.phoenix
+phoenix.db
+
+# In case you dump OTEL traces to a file for debugging
+otel_traces.json
