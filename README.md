@@ -3,7 +3,7 @@
 > A proof-of-concept demonstration of a **Deterministic AI Workflow** designed for Enterprise Customer Experience (CX).
 
 ## ⚠️ Disclaimer
-**This repository is for demonstration purposes only.**
+**This repository is for demonstration and interview purposes only.**
 It is designed to showcase architectural patterns (State Machines, Tool Use, Guardrails) rather than production-grade infrastructure. It currently mocks backend services and lacks enterprise security features (Authentication, Rate Limiting, Persistent Storage).
 
 ---
@@ -19,27 +19,49 @@ This project demonstrates how to solve the "Black Box" problem in Generative AI.
 
 ## 🏗 Architecture
 
-The system is built using a **Headless Agent** pattern with a decoupled frontend and a **RAG-Lite** layer for policy retrieval.
+The system is built using a **Headless Agent** pattern with a decoupled frontend, a **RAG-Lite** layer for policy retrieval, and an **Observability Sidecar** for real-time tracing.
 
 ```mermaid
 graph TD
-    User["User / Chainlit UI"] <--> Agent["Agent Core (Claude 4.5 Sonnet)"]
-    Agent -- "1. Decide Tool" --> ToolRouter["Tool Router"]
-    ToolRouter -- "2. Execute" --> Services["Stateless Service Layer"]
-    Services -- "3. Return Data" --> Agent
-    Services -.-> OMS["Mock OMS"]
-    Services -.-> Stripe["Mock Payment Gateway"]
-    Services -.-> Zendesk["Mock Escalation"]
-    Services -.-> Policies["Policy Docs (.md)"]
+    %% --- Main Application Flow ---
+    subgraph App ["Application Runtime"]
+        direction TB
+        User["User / Chainlit UI"] <--> Agent["Agent Core (Claude 3.5 Sonnet)"]
+        Agent -- "1. Decide Tool" --> Router["Tool Router"]
+        Router -- "2. Execute" --> Services["Stateless Service Layer"]
+        Services -- "3. Return Data" --> Agent
+    end
+
+    %% --- Backend Services ---
+    subgraph Backends ["Backend Infrastructure"]
+        Services -.-> OMS["Mock OMS"]
+        Services -.-> Stripe["Mock Payment Gateway"]
+        Services -.-> Zendesk["Mock Escalation"]
+        Services -.-> Policies["Policy Docs (.md)"]
+    end
+
+    %% --- Observability Sidecar ---
+    subgraph Observability ["Observability Stack"]
+        Phoenix["Arize Phoenix UI<br/>(localhost:6006)"]
+    end
+
+    %% --- Telemetry Connections ---
+    Agent -.-> |"OpenTelemetry (Trace)"| Phoenix
+    Router -.-> |"OpenTelemetry (Trace)"| Phoenix
+
+    %% Styling for better readability
+    style Phoenix fill:#333,stroke:#f66,stroke-width:2px,color:#fff
+    style Agent fill:#2b5e82,stroke:#fff,color:#fff
+    style Policies fill:#ff9900,stroke:#333,color:#000
 
 ```
 
 ### Key Technical Decisions
 
+* **Visual Decision Tracing:** Integrated **Arize Phoenix** via **OpenTelemetry** to visualize the agent's "Chain of Thought" as a waterfall chart. This proves exactly *why* a decision was made (e.g., identifying latency or logic errors in tool calls).
 * **Policy-as-Code (RAG-Lite):** Complex rules are moved out of Python logic and into `policies/*.md` files. The Agent retrieves these on-demand to resolve conflicts (e.g., "Database says eligible, but Policy says specific item is non-returnable").
 * **Stateless Services (`@staticmethod`):** The Service Layer (`services.py`) is purely functional. It holds no memory, preventing "state drift."
 * **Configuration Management:** Model parameters (Temperature=0.0) and System Prompts are decoupled in `config.py` to allow for A/B testing.
-* **Structured Logging:** Deep visibility into the "Agent's Brain" via terminal logs, auditing every decision and tool call.
 
 ---
 
@@ -71,14 +93,27 @@ ANTHROPIC_API_KEY=sk-ant-api03-......
 
 ```
 
-### 4. Run the Agent
+### 4. Run the Stack (Agent + Observability)
+
+To enable full decision tracing, run the Phoenix server in a separate terminal:
+
+**Terminal 1: Start Arize Phoenix (Observability UI)**
+
+```bash
+python -m phoenix.server.main serve
+
+```
+
+*The Dashboard will be available at `http://localhost:6006`.*
+
+**Terminal 2: Run the Agent**
 
 ```bash
 chainlit run app.py -w
 
 ```
 
-The UI will open at `http://localhost:8000`.
+*The Chat UI will open at `http://localhost:8000`.*
 
 ---
 
@@ -127,3 +162,14 @@ I have note opened it- its still in its packing."
 2. **Agent:** (Checks OMS -> Sees `Eligible: True`)
 3. **Agent:** (Reads `return_policy.md`) "Wait, the policy states socks are **Final Sale**."
 4. **Agent:** "I cannot return these. For hygiene reasons, socks are non-returnable despite being within the time window."
+
+---
+
+## 🔬 Inspecting Decisions
+
+After running any scenario above, go to `http://localhost:6006` to inspect the trace:
+
+1. Click on the **Traces** tab.
+2. Select the most recent trace to see the **Waterfall View**.
+3. Verify the sequence: `User Input` -> `LLM Thought` -> `Tool Call (get_policy_info)` -> `Tool Output` -> `Final Response`.
+
