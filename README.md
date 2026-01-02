@@ -1,8 +1,3 @@
-Here is the final, complete `README.md` with **all 6 Demo Scenarios** included.
-
-This covers the entire spectrum: from standard success to strict denials, safety escalations, and finally, the smart "Context Graph" exceptions.
-
-```markdown
 # Enterprise CX Agent (Demo)
 
 > A proof-of-concept demonstration of a **Deterministic AI Workflow** designed for Enterprise Customer Experience (CX).
