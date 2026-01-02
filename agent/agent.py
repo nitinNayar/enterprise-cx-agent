@@ -73,6 +73,8 @@ class SupportAgent:
                         result = EnterpriseServices.look_up_order(tool_input.get("order_id"))
                     elif tool_name == "get_policy_info":
                         result = EnterpriseServices.get_policy_info(tool_input.get("policy_type"))
+                    elif tool_name == "check_precedents":
+                        result = EnterpriseServices.check_precedents(tool_input.get("query_tags_str"))                    
                     elif tool_name == "execute_order_return": 
                         result = EnterpriseServices.execute_refund(tool_input.get("order_id"), tool_input.get("reason"))
                     elif tool_name == "escalate_to_human":

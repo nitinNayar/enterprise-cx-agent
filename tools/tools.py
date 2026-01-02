@@ -56,5 +56,20 @@ tools_schema = [
             },
             "required": ["order_id", "reason", "policy_check_confirmation"]
         }
+    },
+
+    {
+        "name": "check_precedents",
+        "description": "Query the Kùzu Context Graph for past human decisions. Use this when a user asks for an exception (e.g., VIP).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query_tags_str": {
+                    "type": "string",
+                    "description": "Space-separated keywords describing the context (e.g., 'socks vip return')"
+                }
+            },
+            "required": ["query_tags_str"]
+        }
     }
 ]

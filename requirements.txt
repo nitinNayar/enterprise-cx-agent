@@ -1,6 +1,9 @@
 anthropic
 chainlit
 python-dotenv
+
+# simplified graph db
+kuzu
  
 # Observability Stack 
 arize-phoenix
