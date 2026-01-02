@@ -179,3 +179,6 @@ phoenix.db
 
 # In case you dump OTEL traces to a file for debugging
 otel_traces.json
+
+# Ignore the database storage folder
+context_graph_db/
