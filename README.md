@@ -58,10 +58,16 @@ graph TD
 
 ### Key Technical Decisions
 
+* **Tri-Layered Governance:** Compliance is not just a prompt; it is enforced at three levels:
+1. **Prompt:** Explicit "Override Protocol" (Text > Database).
+2. **Data:** "Active Enforcement" language in Markdown policies (`ACTION: REJECT`).
+3. **Tool Constraints:** The `execute_refund` tool requires a mandatory `policy_check_confirmation` argument, physically preventing the LLM from calling it without "self-certifying" compliance.
+
+
+* **Recursive Re-Act Loop:** The Agent runs inside a continuous `while` loop. This allows it to chain multiple reasoning steps (e.g., *Check Policy* -> *Verify Result* -> *Execute Refund*) in a single user turn without getting "stuck" or asking the user for permission to proceed.
 * **Visual Decision Tracing:** Integrated **Arize Phoenix** via **OpenTelemetry** to visualize the agent's "Chain of Thought" as a waterfall chart. This proves exactly *why* a decision was made (e.g., identifying latency or logic errors in tool calls).
-* **Policy-as-Code (RAG-Lite):** Complex rules are moved out of Python logic and into `policies/*.md` files. The Agent retrieves these on-demand to resolve conflicts (e.g., "Database says eligible, but Policy says specific item is non-returnable").
-* **Stateless Services (`@staticmethod`):** The Service Layer (`services.py`) is purely functional. It holds no memory, preventing "state drift."
-* **Configuration Management:** Model parameters (Temperature=0.0) and System Prompts are decoupled in `config.py` to allow for A/B testing.
+* **Policy-as-Code (RAG-Lite):** Complex rules are moved out of Python logic and into `policies/*.md` files.
+* **Stateless Services:** The Service Layer (`services.py`) is purely functional and holds no memory, preventing "state drift."
 
 ---
 
@@ -172,4 +178,15 @@ After running any scenario above, go to `http://localhost:6006` to inspect the t
 1. Click on the **Traces** tab.
 2. Select the most recent trace to see the **Waterfall View**.
 3. Verify the sequence: `User Input` -> `LLM Thought` -> `Tool Call (get_policy_info)` -> `Tool Output` -> `Final Response`.
+
+
+
+
+
+
+
+
+
+
+
 
