@@ -26,7 +26,7 @@ graph TD
     %% --- Main Application Flow ---
     subgraph App ["Application Runtime"]
         direction TB
-        User["User / Chainlit UI"] <--> Agent["Agent Core (Claude 3.5 Sonnet)"]
+        User["User / Chainlit UI"] <--> Agent["Agent Core (Claude 4.5 Sonnet)"]
         Agent -- "1. Decide Tool" --> Router["Tool Router"]
         Router -- "2. Execute" --> Services["Stateless Service Layer"]
         Services -- "3. Return Data" --> Agent
