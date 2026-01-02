@@ -29,7 +29,7 @@ tools_schema = [
 
     {
         "name": "execute_order_return",
-        "description": "process the refund. RESTRICTED: only use if eligible_for_return is true",
+        "description": "process the refund. RESTRICTED: only use if eligible_for_return is true AND if Policy allows it.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -47,9 +47,14 @@ tools_schema = [
             "type": "object",
             "properties": {
                 "order_id": {"type": "string", "description": "OPTIONAL order_id"} ,
-                "reason": {"type": "string"}
+                "reason": {"type": "string"},
+                "policy_check_confirmation": {
+                    "type": "string",
+                    "description": "You must explicitly state: 'I have checked the policy and this item is NOT in the exclusion list.'",
+                    "enum": ["verified_compliant"]
+                }
             },
-            "required": ["reason"]
+            "required": ["order_id", "reason", "policy_check_confirmation"]
         }
     }
 ]
