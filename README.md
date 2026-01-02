@@ -21,38 +21,41 @@ This project demonstrates how to solve the "Black Box" problem in Generative AI.
 
 The system is built using a **Headless Agent** pattern with a decoupled frontend, a **RAG-Lite** layer for policies, and an embedded **Graph Database** for historical decision tracing.
 
+
 ```mermaid
 graph TD
-    %% --- Main Application Flow ---
-    subgraph App ["Application Runtime"]
-        direction TB
-        User["User / Chainlit UI"] <--> Agent["Agent Core (Claude 4.5 Sonnet)"]
-        Agent -- "1. Decide Tool" --> Router["Tool Router"]
-        Router -- "2. Execute" --> Services["Stateless Service Layer"]
+    %% --- Subgraph: Application Runtime ---
+    subgraph App [Application Runtime]
+        User("User / Chainlit UI") <--> Agent("Agent Core (Claude 3.5 Sonnet)")
+        Agent -- "1. Decide Tool" --> Router("Tool Router")
+        Router -- "2. Execute" --> Services("Stateless Service Layer")
         Services -- "3. Return Data" --> Agent
     end
 
-    %% --- Backend Services ---
-    subgraph Backends ["Backend Infrastructure"]
-        Services -.-> OMS["Mock OMS"]
-        Services -.-> Stripe["Mock Payment Gateway"]
-        Services -.-> Zendesk["Mock Escalation"]
-        Services -.-> Policies["Policy Docs (.md)"]
+    %% --- Subgraph: Backend Services ---
+    subgraph Backends [Backend Infrastructure]
+        Services -.-> OMS("Mock OMS")
+        Services -.-> Stripe("Mock Payment Gateway")
+        Services -.-> Zendesk("Mock Escalation")
+        Services -.-> Policies("Policy Docs (.md)")
+        Services -.-> Graph("Context Graph (Kùzu DB)")
     end
 
-    %% --- Observability Sidecar ---
-    subgraph Observability ["Observability Stack"]
-        Phoenix["Arize Phoenix UI<br/>(localhost:6006)"]
+    %% --- Subgraph: Observability ---
+    subgraph Observability [Observability Stack]
+        Phoenix("Arize Phoenix UI<br/>(localhost:6006)")
     end
 
     %% --- Telemetry Connections ---
+    %% We link specific nodes to Phoenix to avoid 'box-in-box' rendering issues
     Agent -.-> |"OpenTelemetry (Trace)"| Phoenix
     Router -.-> |"OpenTelemetry (Trace)"| Phoenix
 
-    %% Styling for better readability
+    %% --- Styling ---
     style Phoenix fill:#333,stroke:#f66,stroke-width:2px,color:#fff
     style Agent fill:#2b5e82,stroke:#fff,color:#fff
     style Policies fill:#ff9900,stroke:#333,color:#000
+    style Graph fill:#5a2b82,stroke:#fff,color:#fff
 
 ```
 
