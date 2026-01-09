@@ -26,7 +26,7 @@ The system is built using a **Headless Agent** pattern with a decoupled frontend
 graph TD
     %% --- Subgraph: Application Runtime ---
     subgraph App [Application Runtime]
-        User("User / Chainlit UI") <--> Agent("Agent Core (Claude 3.5 Sonnet)")
+        User("User / Chainlit UI") <--> Agent("Agent Core (Claude 4.5 Sonnet)")
         Agent -- "1. Decide Tool" --> Router("Tool Router")
         Router -- "2. Execute" --> Services("Stateless Service Layer")
         Services -- "3. Return Data" --> Agent
