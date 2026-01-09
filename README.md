@@ -26,7 +26,7 @@ The system is built using a **Headless Agent** pattern with a decoupled frontend
 graph TD
     %% --- Subgraph: Application Runtime ---
     subgraph App [Application Runtime]
-        User("User / Chainlit UI") <--> Agent("Agent Core (Claude 3.5 Sonnet)")
+        User("User / Chainlit UI") <--> Agent("Agent Core (Claude)")
         Agent -- "1. Decide Tool" --> Router("Tool Router")
         Router -- "2. Execute" --> Services("Stateless Service Layer")
         Services -- "3. Return Data" --> Agent
@@ -133,9 +133,16 @@ chainlit run app.py -w
 
 ---
 
+## 🎬 System Overview
+
+**📹 [Watch the Full System Walkthrough (5 min)](https://www.loom.com/share/da571310a7074dc596d399b6c837b9df)**
+This video covers the complete architecture, including State Machine design, Tool Use, Guardrails, Context Graphs, and Observability stack.
+
+---
+
 ## 🧪 Demo Scenarios
 
-Use these inputs to test the **Guardrails**, **Tool Use**, and **Context Graph** capabilities.
+Use these inputs to test the **Guardrails**, **Tool Use**, and **Context Graph** capabilities. Each scenario includes a video demonstration.
 
 ### 1. The Standard Controls (Basics)
 
@@ -143,16 +150,19 @@ Use these inputs to test the **Guardrails**, **Tool Use**, and **Context Graph**
 
 * **User:** "I want to return my order ORD-123 (Headphones)."
 * **Outcome:** **Refunded.** Agent checks OMS, verifies policy, and processes refund.
+* **📹 [Watch Demo: Simple Return & Phoenix Observability](https://www.loom.com/share/2cfcbd03f62b46d394bbc407c2cc2fca)**
 
 **Scenario B: The Database Rejection**
 
 * **User:** "I want to return order ORD-456."
 * **Outcome:** **Denied.** Agent sees `eligible_for_return: False` in the database (OMS) and rejects immediately.
+* **📹 [Watch Demo: Return Rejection (Late Return)](https://www.loom.com/share/10937ae5a7f94ae5a1485f8b79acc487)**
 
 **Scenario C: The Safety Valve (Escalation)**
 
 * **User:** "I am absolutely furious about order ORD-999! This is a scam!"
 * **Outcome:** **Escalated.** Agent detects angry sentiment/keywords and triggers the Zendesk handover tool immediately.
+* **📹 [Watch Demo: Customer Escalation](https://www.loom.com/share/1daaea0cd9f54409b1b3e401bb923905)**
 
 ### 2. The Advanced Governance (Policy vs. Database)
 
@@ -162,8 +172,9 @@ Use these inputs to test the **Guardrails**, **Tool Use**, and **Context Graph**
 
 * **User:** "I want to return ORD-777 (Socks)."
 * **Outcome:** **Denied.** Agent reads `return_policy.md`, sees "Socks are Final Sale", and overrides the database eligibility flag.
+* **📹 [Watch Demo: Advanced Governance (Policy Override)](https://www.loom.com/share/46e96c4bf1364c8c833004614bbb1761)**
 
-### 3. The Context Graph (AI Adaptability)
+### 3. The Context Graph & Decision Traces (AI Adaptability)
 
 **Scenario E: The "VIP Loyalty" Exception**
 
@@ -171,6 +182,7 @@ Use these inputs to test the **Guardrails**, **Tool Use**, and **Context Graph**
 
 * **User:** "I want to return these socks (ORD-777). I know they are final sale, but I am a **VIP** customer and I need an exception."
 * **Outcome:** **Approved.** Agent queries the Graph, finds a "VIP Loyalty" precedent, and grants a one-time courtesy refund.
+* **📹 [Watch Demo: Context Graph & Decision Traces](https://www.loom.com/share/2e1cfb05e5cd4e3ead3276bcac984b66)**
 
 **Scenario F: The "Holiday Gift" Exception**
 
