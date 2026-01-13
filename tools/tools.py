@@ -60,13 +60,13 @@ tools_schema = [
 
     {
         "name": "check_precedents",
-        "description": "Query the Kùzu Context Graph for past human decisions. Use this when a user asks for an exception (e.g., VIP).",
+        "description": "Query the Kùzu Context Graph for past human decisions. Use this when a user asks for an exception (e.g., VIP, holiday gift, high-value customer).",
         "input_schema": {
             "type": "object",
             "properties": {
                 "query_tags_str": {
                     "type": "string",
-                    "description": "Space-separated keywords describing the context (e.g., 'socks vip return')"
+                    "description": "Space-separated lowercase keywords describing the context. Extract relevant keywords from the customer's request (e.g., 'vip socks return exception', 'holiday gift late', 'electronics opened high_value'). Use lowercase for all keywords."
                 }
             },
             "required": ["query_tags_str"]

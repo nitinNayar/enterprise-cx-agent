@@ -1,0 +1,38 @@
+From: Mike Rodriguez <mike.rodriguez@company.com>
+To: Support Escalations <escalations@company.com>
+Subject: Holiday Gift Return - Late but Reasonable
+Date: January 20, 2024 10:15 AM
+Case ID: ESC-2024-002
+
+Context:
+--------
+Customer purchased a $50 PlayStation gift card on December 10, 2023 as a holiday gift.
+The recipient is trying to return it on January 18, 2024 (39 days after purchase).
+
+Standard policy: 30-day return window
+Customer explanation: "This was a Christmas gift I bought in early December.
+The recipient just told me this week they already have PlayStation Plus.
+I know it's past 30 days but it was a holiday gift."
+
+Order Details:
+- Order ID: ORD-888
+- Item: PlayStation $50 Gift Card
+- Purchase Date: December 10, 2023
+- Return Request Date: January 18, 2024 (39 days)
+- Customer: Regular member (not VIP)
+
+DECISION BY: Mike Rodriguez, Customer Service Manager
+DECISION: APPROVED
+
+REASONING:
+Holiday gifts purchased in December should receive extended consideration.
+Recipients often don't unwrap/evaluate gifts until after the holidays.
+A 60-day window for December purchases is reasonable and builds goodwill.
+
+This aligns with our customer-first values during the holiday season.
+
+Approved for refund.
+
+---
+Mike Rodriguez
+Customer Service Manager

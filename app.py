@@ -1,6 +1,10 @@
 import chainlit as cl
 from agent.agent import SupportAgent
-from observability.tracing import setup_phoenix_tracing 
+from observability.tracing import setup_phoenix_tracing
+from logging_config import setup_logging
+
+# Initialize Logging FIRST (before anything else)
+audit_logger = setup_logging()
 
 # Initialize Tracing ONCE at startup
 setup_phoenix_tracing()

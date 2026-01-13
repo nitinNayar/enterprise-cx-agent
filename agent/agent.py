@@ -1,17 +1,22 @@
 import anthropic
 import logging
 import json
+import uuid
 
 from services.services import EnterpriseServices
 from tools.tools import tools_schema
 from config import Config
+from logging_config import get_session_id, set_session_id
 
 logger = logging.getLogger("Claude Agent")
+audit_logger = logging.getLogger("DecisionAudit")
 
 class SupportAgent:
     def __init__(self) -> None:
         self.client = anthropic.Anthropic(api_key=Config.ANTHROPIC_API_KEY)
         self.messages = [] # conversation history
+        self.session_id = None  # Track session for audit logging
+        self.precedent_used = None  # Track if precedent was used in this conversation
     
 
     def run(self, user_input):
@@ -23,9 +28,14 @@ class SupportAgent:
         3. Tool Result -> Claude (Loop)
         4. Claude -> Final Answer (Exit)
         """
-        
+
         # --- 1. Setup (Outside the Loop) ---
-        logger.info(f"User Input: {user_input}")
+        # Generate session ID for this conversation turn
+        if not self.session_id:
+            self.session_id = f"SESSION-{uuid.uuid4().hex[:8]}"
+            set_session_id(self.session_id)
+
+        logger.info(f"[{self.session_id}] User Input: {user_input}")
         self.messages.append({"role": "user", "content": user_input})
 
         # --- 2. The "Re-Act" Loop ---
@@ -49,6 +59,20 @@ class SupportAgent:
                 final_text = response.content[0].text
                 self.messages.append({"role": "assistant", "content": final_text})
                 logger.info("CYCLE COMPLETE: Sent final response.")
+
+                # Check if response contains precedent citation (for audit logging)
+                if self.precedent_used and ("precedent" in final_text.lower() or "exception" in final_text.lower()):
+                    audit_logger.info(
+                        "Agent cited precedent in response",
+                        extra={
+                            'session_id': self.session_id,
+                            'response_excerpt': final_text[:200],
+                            'decision_id': self.precedent_used.get('decision_id'),
+                            'person_name': self.precedent_used.get('person_name'),
+                            'event_type': 'PRECEDENT_CITED'
+                        }
+                    )
+
                 return final_text
 
             # --- CONTINUE CONDITION: Claude wants to use tools ---
@@ -71,14 +95,52 @@ class SupportAgent:
                     result = None
                     if tool_name == "look_up_order":
                         result = EnterpriseServices.look_up_order(tool_input.get("order_id"))
+
                     elif tool_name == "get_policy_info":
                         result = EnterpriseServices.get_policy_info(tool_input.get("policy_type"))
+
                     elif tool_name == "check_precedents":
-                        result = EnterpriseServices.check_precedents(tool_input.get("query_tags_str"))                    
-                    elif tool_name == "execute_order_return": 
+                        result = EnterpriseServices.check_precedents(tool_input.get("query_tags_str"))
+
+                        # Track precedent usage for audit logging
+                        if result.get("found"):
+                            self.precedent_used = result
+                            audit_logger.info(
+                                f"Agent using precedent: {result['decision_id']}",
+                                extra={
+                                    'session_id': self.session_id,
+                                    'decision_id': result['decision_id'],
+                                    'person_name': result['person_name'],
+                                    'person_role': result['person_role'],
+                                    'event_type': 'AGENT_USING_PRECEDENT'
+                                }
+                            )
+
+                    elif tool_name == "execute_order_return":
                         result = EnterpriseServices.execute_refund(tool_input.get("order_id"), tool_input.get("reason"))
+
+                        # Record decision to audit ledger
+                        decision_id = self.precedent_used.get('decision_id') if self.precedent_used else None
+                        person_id = self.precedent_used.get('person_id') if self.precedent_used else None
+
+                        EnterpriseServices.record_decision_to_ledger(
+                            order_id=tool_input.get("order_id"),
+                            agent_decision="APPROVE",
+                            decision_id=decision_id,
+                            person_id=person_id,
+                            rationale=tool_input.get("reason")
+                        )
+
                     elif tool_name == "escalate_to_human":
                         result = EnterpriseServices.escalate_to_human(tool_input.get("order_id"), tool_input.get("reason"))
+
+                        # Record escalation to audit ledger
+                        EnterpriseServices.record_decision_to_ledger(
+                            order_id=tool_input.get("order_id"),
+                            agent_decision="ESCALATE",
+                            rationale=tool_input.get("reason")
+                        )
+
                     else:
                         logger.error(f"Unknown tool called: {tool_name}")
                         result = {"error": f"Tool '{tool_name}' not found."}
