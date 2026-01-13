@@ -1,0 +1,60 @@
+From: Jennifer Park <jennifer.park@company.com>
+To: Escalation Team <escalations@company.com>
+Subject: RE: ESC-2024-003 - High-Value Customer - Opened Electronics Return
+Date: February 5, 2024 3:45 PM
+
+Escalation Details:
+-------------------
+
+From: AI Support Agent
+Date: February 5, 2024 2:15 PM
+Case: ESC-2024-003
+
+Customer: David Thompson (Customer ID: CUST-HV-5532)
+Order: ORD-999
+Item: Gaming Monitor 32" 4K ($899)
+Issue: Customer wants to return OPENED electronics (typically non-returnable)
+
+Policy Check: DENY - Opened electronics are non-returnable per standard policy
+Customer Context:
+- High-value customer: $12,000 annual spend
+- 5-year customer history
+- Previous purchases: 47 orders, 0 returns
+Customer Statement: "I opened the monitor but the color accuracy isn't what I expected
+for my professional work. I'm a loyal customer and spend over $10k a year with you.
+Can you make an exception this one time?"
+
+Requesting manager review.
+
+---
+
+From: Jennifer Park <jennifer.park@company.com>
+Date: February 5, 2024 3:45 PM
+
+DECISION: APPROVED
+
+After reviewing this case, I'm approving the return despite the opened condition.
+
+JUSTIFICATION:
+1. Customer is in our top tier ($10k+ annual spend)
+2. Perfect return history (0 returns out of 47 orders)
+3. Legitimate use case (professional color accuracy needs)
+4. Customer explicitly acknowledges this as exceptional request
+5. Long-term relationship value outweighs single-item loss
+
+CONDITIONS:
+- This is a ONE-TIME exception
+- Customer must be informed this courtesy is due to their exceptional loyalty
+- Limited to one opened electronics return per customer per year
+- Does not apply to customers under $5k annual spend
+
+REASONING FOR PRECEDENT:
+High-value customers with demonstrated loyalty and clean history deserve exceptional
+service on rare occasions. This exception strengthens customer lifetime value and
+reinforces that we value long-term relationships.
+
+Please process the return and update customer notes with this decision.
+
+---
+Jennifer Park
+Director of Customer Experience

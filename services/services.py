@@ -2,15 +2,12 @@ import logging
 import random
 import os
 import kuzu
+from datetime import datetime
+from logging_config import get_session_id
 
-
-# Configure Logging to STDOUT (Terminal)
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%H:%M:%S'
-)
+# Get loggers (logging configured by logging_config.py)
 logger = logging.getLogger("BackendServices")
+audit_logger = logging.getLogger("DecisionAudit")
 
 class EnterpriseServices:
     """
@@ -111,6 +108,16 @@ class EnterpriseServices:
     def check_precedents(query_tags_str):
         logger.info(f"PRECEDENT CHECK: Starting precedent lookup with query_tags_str: '{query_tags_str}'")
 
+        # Log to audit system
+        audit_logger.info(
+            "Precedent query initiated",
+            extra={
+                'session_id': get_session_id(),
+                'query_tags': query_tags_str.split(),
+                'event_type': 'PRECEDENT_QUERY'
+            }
+        )
+
         if not EnterpriseServices.conn:
             logger.error("PRECEDENT CHECK: Graph DB connection not initialized.")
             return {"error": "Graph DB not initialized."}
@@ -118,13 +125,27 @@ class EnterpriseServices:
         input_tags = [t.strip().lower() for t in query_tags_str.split()]
         logger.info(f"PRECEDENT CHECK: Parsed input tags: {input_tags}")
 
-        # --- FIX: Updated Query to use SupportCase ---
+        # NEW QUERY: Traverse Person→Decision→Tag relationships with attribution
         query = f"""
-        MATCH (c:SupportCase)-[:HAS_TAG]->(t:Tag)
+        MATCH (p:Person)-[m:MADE]->(d:Decision)-[ctx:HAS_CONTEXT]->(t:Tag)
         WHERE t.name IN {input_tags}
-        RETURN c.id, c.decision, c.rationale, COUNT(t) AS score
-        ORDER BY score DESC
+          AND (d.expires_at = 'NEVER' OR d.expires_at > '{datetime.now().isoformat()}')
+          AND d.confidence_score >= 0.7
+        WITH p, d, SUM(ctx.relevance_score) AS score
+        ORDER BY score DESC, p.authority_level DESC
         LIMIT 1
+        RETURN
+            d.id AS decision_id,
+            d.title AS decision_title,
+            d.outcome AS decision,
+            d.reasoning AS rationale,
+            d.conditions AS conditions,
+            p.id AS person_id,
+            p.name AS person_name,
+            p.role AS person_role,
+            p.authority_level AS authority,
+            score,
+            d.confidence_score AS confidence
         """
         logger.debug(f"PRECEDENT CHECK: Executing query: {query}")
 
@@ -133,18 +154,191 @@ class EnterpriseServices:
             logger.debug("PRECEDENT CHECK: Query executed successfully, checking for results...")
 
             if result.has_next():
-                case_id, decision, rationale, score = result.get_next()
-                logger.info(f"PRECEDENT CHECK: Found matching precedent - ID: {case_id}, Decision: {decision}, Score: {score}")
+                row = result.get_next()
+                (decision_id, decision_title, decision, rationale, conditions,
+                 person_id, person_name, person_role, authority,
+                 score, confidence) = row
+
+                logger.info(
+                    f"PRECEDENT CHECK: ✅ Found matching precedent - ID: {decision_id} "
+                    f"by {person_name} ({person_role}) | Score: {score}"
+                )
+
+                # Log match with full attribution to audit system
+                audit_logger.info(
+                    f"Precedent matched: {decision_title}",
+                    extra={
+                        'session_id': get_session_id(),
+                        'decision_id': decision_id,
+                        'person_id': person_id,
+                        'person_name': person_name,
+                        'person_role': person_role,
+                        'match_score': score,
+                        'confidence': confidence,
+                        'event_type': 'PRECEDENT_MATCH'
+                    }
+                )
+
                 return {
                     "found": True,
-                    "precedent_id": case_id,
+                    "decision_id": decision_id,
+                    "decision_title": decision_title,
                     "decision": decision,
                     "rationale": rationale,
-                    "match_score": score
+                    "conditions": conditions,
+                    "person_id": person_id,
+                    "person_name": person_name,
+                    "person_role": person_role,
+                    "authority_level": authority,
+                    "match_score": score,
+                    "confidence": confidence
                 }
             else:
                 logger.warning(f"PRECEDENT CHECK: No matching precedents found for tags: {input_tags}")
+
+                audit_logger.info(
+                    "No precedent found",
+                    extra={
+                        'session_id': get_session_id(),
+                        'query_tags': input_tags,
+                        'event_type': 'NO_PRECEDENT'
+                    }
+                )
+
                 return {"found": False, "message": "No matching precedents found."}
+
         except Exception as e:
             logger.error(f"PRECEDENT CHECK: Graph query failed with error: {str(e)}", exc_info=True)
             return {"error": f"Graph Query Failed: {str(e)}"}
+
+    @staticmethod
+    def record_decision_to_ledger(
+        order_id: str,
+        agent_decision: str,
+        decision_id: str = None,
+        person_id: str = None,
+        rationale: str = None
+    ) -> dict:
+        """
+        Record agent's final decision to audit log.
+        Links agent action to precedent if used.
+
+        Args:
+            order_id: Order being processed
+            agent_decision: APPROVE/DENY/ESCALATE
+            decision_id: Decision ID from graph (if precedent was used)
+            person_id: Person ID who made the precedent decision
+            rationale: Reason for the decision
+
+        Returns:
+            dict with status and session_id
+        """
+
+        log_entry = {
+            'session_id': get_session_id(),
+            'order_id': order_id,
+            'agent_decision': agent_decision,
+            'rationale': rationale,
+            'event_type': 'AGENT_DECISION'
+        }
+
+        if decision_id:
+            log_entry['decision_id'] = decision_id
+
+        if person_id:
+            log_entry['person_id'] = person_id
+
+            # Fetch person details from graph
+            if EnterpriseServices.conn:
+                try:
+                    person_result = EnterpriseServices.conn.execute(f"""
+                        MATCH (p:Person {{id: '{person_id}'}})
+                        RETURN p.name, p.role
+                    """)
+
+                    if person_result.has_next():
+                        name, role = person_result.get_next()
+                        log_entry['person_name'] = name
+                        log_entry['person_role'] = role
+                except Exception as e:
+                    logger.warning(f"Could not fetch person details: {e}")
+
+        audit_logger.info(
+            f"Agent decision: {agent_decision}",
+            extra=log_entry
+        )
+
+        return {
+            "status": "logged",
+            "session_id": log_entry['session_id']
+        }
+
+    @staticmethod
+    def get_decision_attribution(decision_id: str) -> dict:
+        """
+        Retrieve full attribution chain for a decision.
+        Returns Person info and Decision details for audit purposes.
+
+        Args:
+            decision_id: The decision ID to look up
+
+        Returns:
+            dict with person and decision details, or error
+        """
+
+        if not EnterpriseServices.conn:
+            return {"error": "Graph DB not initialized."}
+
+        query = f"""
+        MATCH (p:Person)-[m:MADE]->(d:Decision {{id: '{decision_id}'}})
+        OPTIONAL MATCH (d)-[:APPLIES_TO]->(prod:Product)
+        OPTIONAL MATCH (d)-[:HAS_CONTEXT]->(t:Tag)
+        RETURN
+            p.id AS person_id,
+            p.name AS person_name,
+            p.role AS person_role,
+            p.email AS person_email,
+            d.id AS decision_id,
+            d.title AS title,
+            d.outcome AS outcome,
+            d.reasoning AS reasoning,
+            d.conditions AS conditions,
+            d.source_ref AS source_file,
+            d.created_at AS created_at,
+            m.decision_timestamp AS timestamp,
+            COLLECT(DISTINCT prod.category_name) AS products,
+            COLLECT(DISTINCT t.name) AS tags
+        """
+
+        try:
+            result = EnterpriseServices.conn.execute(query)
+
+            if result.has_next():
+                row = result.get_next()
+                return {
+                    "found": True,
+                    "person": {
+                        "id": row[0],
+                        "name": row[1],
+                        "role": row[2],
+                        "email": row[3]
+                    },
+                    "decision": {
+                        "id": row[4],
+                        "title": row[5],
+                        "outcome": row[6],
+                        "reasoning": row[7],
+                        "conditions": row[8],
+                        "source_file": row[9],
+                        "created_at": row[10],
+                        "timestamp": row[11]
+                    },
+                    "products": row[12],
+                    "tags": row[13]
+                }
+            else:
+                return {"found": False, "message": "Decision not found"}
+
+        except Exception as e:
+            logger.error(f"Attribution query failed: {e}", exc_info=True)
+            return {"error": str(e)}
