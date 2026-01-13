@@ -36,6 +36,18 @@ class SupportAgent:
             set_session_id(self.session_id)
 
         logger.info(f"[{self.session_id}] User Input: {user_input}")
+
+        # Log user message to audit log for conversation trace (only if non-empty)
+        if user_input and user_input.strip():
+            audit_logger.info(
+                "User message",
+                extra={
+                    'session_id': self.session_id,
+                    'user_message': user_input,
+                    'event_type': 'USER_MESSAGE'
+                }
+            )
+
         self.messages.append({"role": "user", "content": user_input})
 
         # --- 2. The "Re-Act" Loop ---
@@ -60,6 +72,18 @@ class SupportAgent:
                 self.messages.append({"role": "assistant", "content": final_text})
                 logger.info("CYCLE COMPLETE: Sent final response.")
 
+                # Log agent response to audit log (only if non-empty)
+                if final_text and final_text.strip():
+                    audit_logger.info(
+                        "Agent response to user",
+                        extra={
+                            'session_id': self.session_id,
+                            'agent_response': final_text,
+                            'response_type': 'final',
+                            'event_type': 'AGENT_RESPONSE'
+                        }
+                    )
+
                 # Check if response contains precedent citation (for audit logging)
                 if self.precedent_used and ("precedent" in final_text.lower() or "exception" in final_text.lower()):
                     audit_logger.info(
@@ -77,9 +101,25 @@ class SupportAgent:
 
             # --- CONTINUE CONDITION: Claude wants to use tools ---
             elif response.stop_reason == "tool_use":
-                
+
                 # IMPORTANT: Add Claude's "Intent" to history so it remembers what it asked for
                 self.messages.append({"role": "assistant", "content": response.content})
+
+                # Extract and log any text blocks (agent thinking/reasoning)
+                text_blocks = [block for block in response.content if block.type == "text"]
+                if text_blocks:
+                    thinking_text = "\n".join([block.text for block in text_blocks])
+                    # Only log if there's actual content
+                    if thinking_text and thinking_text.strip():
+                        audit_logger.info(
+                            "Agent reasoning/thinking",
+                            extra={
+                                'session_id': self.session_id,
+                                'agent_response': thinking_text,
+                                'response_type': 'thinking',
+                                'event_type': 'AGENT_RESPONSE'
+                            }
+                        )
 
                 tool_use_blocks = [block for block in response.content if block.type == "tool_use"]
                 tool_result_content = []
@@ -91,13 +131,49 @@ class SupportAgent:
 
                     logger.info(f"DECISION: Agent called '{tool_name}' with input {tool_input}")
 
+                    # Log tool call to audit log for complete trace
+                    audit_logger.info(
+                        f"Tool call: {tool_name}",
+                        extra={
+                            'session_id': self.session_id,
+                            'tool_name': tool_name,
+                            'tool_input': tool_input,
+                            'event_type': 'TOOL_CALL'
+                        }
+                    )
+
                     # Execute the specific tool
                     result = None
                     if tool_name == "look_up_order":
                         result = EnterpriseServices.look_up_order(tool_input.get("order_id"))
 
+                        # Log tool result
+                        audit_logger.info(
+                            f"Order lookup result for {tool_input.get('order_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'order_id': tool_input.get('order_id'),
+                                'order_status': result.get('status') if result else None,
+                                'items': result.get('items') if result else None,
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
                     elif tool_name == "get_policy_info":
                         result = EnterpriseServices.get_policy_info(tool_input.get("policy_type"))
+
+                        # Log tool result
+                        audit_logger.info(
+                            f"Policy lookup result for {tool_input.get('policy_type')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'policy_type': tool_input.get('policy_type'),
+                                'policy_retrieved': bool(result),
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
 
                     elif tool_name == "check_precedents":
                         result = EnterpriseServices.check_precedents(tool_input.get("query_tags_str"))
@@ -119,6 +195,19 @@ class SupportAgent:
                     elif tool_name == "execute_order_return":
                         result = EnterpriseServices.execute_refund(tool_input.get("order_id"), tool_input.get("reason"))
 
+                        # Log tool result
+                        audit_logger.info(
+                            f"Return executed for order {tool_input.get('order_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'order_id': tool_input.get('order_id'),
+                                'refund_status': result.get('status') if result else None,
+                                'transaction_id': result.get('transaction_id') if result else None,
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
                         # Record decision to audit ledger
                         decision_id = self.precedent_used.get('decision_id') if self.precedent_used else None
                         person_id = self.precedent_used.get('person_id') if self.precedent_used else None
@@ -133,6 +222,19 @@ class SupportAgent:
 
                     elif tool_name == "escalate_to_human":
                         result = EnterpriseServices.escalate_to_human(tool_input.get("order_id"), tool_input.get("reason"))
+
+                        # Log tool result
+                        audit_logger.info(
+                            f"Escalated to human for order {tool_input.get('order_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'order_id': tool_input.get('order_id'),
+                                'escalation_reason': tool_input.get('reason'),
+                                'ticket_id': result.get('ticket_id') if result else None,
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
 
                         # Record escalation to audit ledger
                         EnterpriseServices.record_decision_to_ledger(
