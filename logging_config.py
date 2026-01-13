@@ -98,6 +98,47 @@ class DecisionAuditFormatter(logging.Formatter):
         if hasattr(record, 'response_excerpt'):
             log_entry['response_excerpt'] = record.response_excerpt
 
+        # Tool call related fields
+        if hasattr(record, 'tool_name'):
+            log_entry['tool_name'] = record.tool_name
+
+        if hasattr(record, 'tool_input'):
+            log_entry['tool_input'] = record.tool_input
+
+        if hasattr(record, 'order_status'):
+            log_entry['order_status'] = record.order_status
+
+        if hasattr(record, 'items'):
+            log_entry['items'] = record.items
+
+        if hasattr(record, 'policy_type'):
+            log_entry['policy_type'] = record.policy_type
+
+        if hasattr(record, 'policy_retrieved'):
+            log_entry['policy_retrieved'] = record.policy_retrieved
+
+        if hasattr(record, 'refund_status'):
+            log_entry['refund_status'] = record.refund_status
+
+        if hasattr(record, 'transaction_id'):
+            log_entry['transaction_id'] = record.transaction_id
+
+        if hasattr(record, 'escalation_reason'):
+            log_entry['escalation_reason'] = record.escalation_reason
+
+        if hasattr(record, 'ticket_id'):
+            log_entry['ticket_id'] = record.ticket_id
+
+        # Conversation related fields
+        if hasattr(record, 'user_message'):
+            log_entry['user_message'] = record.user_message
+
+        if hasattr(record, 'agent_response'):
+            log_entry['agent_response'] = record.agent_response
+
+        if hasattr(record, 'response_type'):
+            log_entry['response_type'] = record.response_type
+
         # Add exception info if present
         if record.exc_info:
             log_entry['exception'] = self.formatException(record.exc_info)
