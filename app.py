@@ -14,19 +14,19 @@ setup_phoenix_tracing()
 async def chat_profile():
     """
     Define two chat profiles:
-    - Customer Support: Normal agent interaction
-    - Decision Reviewer: Decision trace investigation
+    - TrueCart Support: Normal agent interaction
+    - TrueCart Admin: Decision trace investigation
     """
     return [
         cl.ChatProfile(
-            name="Customer Support",
+            name="TrueCart Support",
             markdown_description="Talk to our AI support agent to resolve your order issues.",
-            icon="https://api.dicebear.com/7.x/bottts/svg?seed=customer"
+            icon="/public/TrueCart_Light.png"
         ),
         cl.ChatProfile(
-            name="Decision Reviewer",
+            name="TrueCart Admin",
             markdown_description="**Admin Only**: View decision traces for any customer session. Enter a session ID to investigate agent decisions and precedent usage.",
-            icon="https://api.dicebear.com/7.x/bottts/svg?seed=admin"
+            icon="/public/TrueCart_Light.png"
         )
     ]
 
@@ -39,7 +39,7 @@ async def start():
     # Get selected profile from session
     chat_profile = cl.user_session.get("chat_profile")
 
-    if chat_profile == "Decision Reviewer":
+    if chat_profile == "TrueCart Admin":
         # Admin mode: Store profile flag and send instructions
         cl.user_session.set("mode", "admin")
 
