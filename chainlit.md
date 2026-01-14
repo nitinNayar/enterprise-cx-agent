@@ -1,14 +1,25 @@
-# Welcome to Chainlit! 🚀🤖
+# Welcome to TrueCart
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+Hello! I'm your **TrueCart Customer Experience Assistant**, powered by advanced artificial intelligence to help resolve your order and support issues quickly and efficiently.
 
-## Useful Links 🔗
+## How I Can Help
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+I'm here to assist you with:
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
+- **Order Tracking & Status** - Get real-time updates on your orders
+- **Issue Resolution** - Report problems and get immediate assistance
+- **Returns & Refunds** - Process returns and check refund status
+- **Account Support** - Help with account-related questions
+- **Product Information** - Learn about products and services
 
-## Welcome screen
+## Getting Started
 
-To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
+Simply type your question or describe your issue in the chat below. I'll analyze your request and provide personalized assistance based on our policies and your specific situation.
+
+### For Administrators
+
+Switch to **Decision Reviewer** mode to investigate agent decisions and review session traces for quality assurance and training purposes.
+
+---
+
+**Note:** This assistant uses AI-powered decision making with policy precedent tracking to ensure consistent and accurate support across all customer interactions.

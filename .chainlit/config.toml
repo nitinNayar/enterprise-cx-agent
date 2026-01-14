@@ -89,27 +89,30 @@ reaction_on_message_received = false
 
 [UI]
 # Name of the assistant.
-name = "Assistant"
+name = "TrueCart"
 
-# default_theme = "dark"
+# Set default theme (light or dark)
+default_theme = "light"
 
 # Force a specific language for all users (e.g., "en-US", "he-IL", "fr-FR")
 # If not set, the browser's language will be used
 # language = "en-US"
 
-# layout = "wide"
+# Use wide layout for better visibility
+layout = "wide"
 
-# default_sidebar_state = "open"
+# Keep sidebar open by default
+default_sidebar_state = "open"
 
 # Description of the assistant. This is used for HTML tags.
-# description = ""
+description = "TrueCart - Enterprise Customer Experience Agent. Intelligent support powered by advanced AI to resolve your order issues quickly and efficiently."
 
 # Chain of Thought (CoT) display mode. Can be "hidden", "tool_call" or "full".
 cot = "full"
 
 # Specify a CSS file that can be used to customize the user interface.
 # The CSS file can be served from the public directory or via an external link.
-# custom_css = "/public/test.css"
+custom_css = "/public/brand.css"
 
 # Specify additional attributes for a custom CSS file
 # custom_css_attributes = "media=\"print\""
@@ -138,10 +141,12 @@ alert_style = "classic"
 # custom_meta_image_url = "https://chainlit-cloud.s3.eu-west-3.amazonaws.com/logo/chainlit_banner.png"
 
 # Load assistant logo directly from URL.
-logo_file_url = ""
+# Using the light version for light mode (dark version available at /public/TrueCart_dark.png)
+logo_file_url = "/public/TrueCart_Light.png"
 
 # Load assistant avatar image directly from URL.
-default_avatar_file_url = ""
+# You can use the same logo or a different avatar image
+default_avatar_file_url = "/public/TrueCart_Light.png"
 
 # Specify a custom build directory for the frontend.
 # This can be used to customize the frontend code.
@@ -149,12 +154,19 @@ default_avatar_file_url = ""
 # custom_build = "./public/build"
 
 # Specify optional one or more custom links in the header.
-# [[UI.header_links]]
-#     name = "Issues"
-#     display_name = "Report Issue"
-#     icon_url = "https://avatars.githubusercontent.com/u/128686189?s=200&v=4"
-#     url = "https://github.com/Chainlit/chainlit/issues"
-#     target = "_blank" (default)  # Optional: "_self", "_parent", "_top".
+[[UI.header_links]]
+    name = "Help"
+    display_name = "Help Center"
+    icon_url = "https://api.iconify.design/mdi/help-circle-outline.svg"
+    url = "#"  # Replace with your actual help center URL
+    target = "_blank"
+
+[[UI.header_links]]
+    name = "Contact"
+    display_name = "Contact Support"
+    icon_url = "https://api.iconify.design/mdi/email-outline.svg"
+    url = "#"  # Replace with your actual contact URL
+    target = "_blank"
 
 [meta]
 generated_by = "2.9.4"
