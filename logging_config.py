@@ -129,6 +129,22 @@ class DecisionAuditFormatter(logging.Formatter):
         if hasattr(record, 'ticket_id'):
             log_entry['ticket_id'] = record.ticket_id
 
+        # VIP and customer related fields
+        if hasattr(record, 'customer_id'):
+            log_entry['customer_id'] = record.customer_id
+
+        if hasattr(record, 'is_vip'):
+            log_entry['is_vip'] = record.is_vip
+
+        if hasattr(record, 'vip_tier'):
+            log_entry['vip_tier'] = record.vip_tier
+
+        if hasattr(record, 'customer_name'):
+            log_entry['customer_name'] = record.customer_name
+
+        if hasattr(record, 'years_active'):
+            log_entry['years_active'] = record.years_active
+
         # Conversation related fields
         if hasattr(record, 'user_message'):
             log_entry['user_message'] = record.user_message
@@ -149,7 +165,7 @@ class DecisionAuditFormatter(logging.Formatter):
 def setup_logging():
     """
     Configure dual logging system:
-    1. Console logs (human-readable, existing format)
+    1. Console logs (human-readable)
     2. File console log (debug output)
     3. Audit logs (JSON structured, for monitoring tools)
 
@@ -168,7 +184,7 @@ def setup_logging():
     # HANDLER 1: Console (Human-Readable)
     # ========================================
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.INFO) 
     console_formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%H:%M:%S'
