@@ -45,12 +45,89 @@ class EnterpriseServices:
         # Mock Database
 
         mock_db = {
-            "ORD-123": {"status": "shipped", "items": ["Wireless Headphones"], "eligible_for_return": True, "customer_sentiment": "neutral"},
-            "ORD-456": {"status": "delivered", "items": ["Gaming Mouse"], "eligible_for_return": False, "return_reason": "window_expired", "customer_sentiment": "neutral"},
-            "ORD-999": {"status": "processing", "items": ["4K Monitor"], "eligible_for_return": True, "customer_sentiment": "angry"},
-            "ORD-777": {"status": "delivered", "items": ["Premium Wool Socks"], "eligible_for_return": True, "customer_sentiment": "neutral"},
-            "ORD-888": {"status": "delivered", "items": ["$50 PlayStation Store Card"], "eligible_for_return": True, "customer_sentiment": "neutral"},
-            "ORD-555": {"status": "delivered", "items": ["Luxury Night Cream"], "eligible_for_return": True, "customer_sentiment": "positive"}
+            "ORD-123": {
+                "status": "shipped",
+                "items": ["Wireless Headphones"],
+                "eligible_for_return": True,
+                "customer_sentiment": "neutral",
+                "customer_id": "CUST-VIP-0001",
+                "customer_name": "John McClane"
+            },
+            "ORD-456": {
+                "status": "delivered",
+                "items": ["Gaming Mouse"],
+                "eligible_for_return": False,
+                "return_reason": "window_expired",
+                "customer_sentiment": "neutral",
+                "customer_id": "CUST-REG-0456",
+                "customer_name": "Jason Bourne"
+            },
+            "ORD-999": {
+                "status": "processing",
+                "items": ["4K Monitor"],
+                "eligible_for_return": True,
+                "customer_sentiment": "angry",
+                "customer_id": "CUST-REG-0999",
+                "customer_name": "Neo Anderson"
+            },
+            "ORD-777": {
+                "status": "delivered",
+                "items": ["Premium Wool Socks"],
+                "eligible_for_return": True,
+                "customer_sentiment": "neutral",
+                "customer_id": "CUST-VIP-9921",
+                "customer_name": "Sarah Connor"
+            },
+            "ORD-888": {
+                "status": "delivered",
+                "items": ["$50 PlayStation Store Card"],
+                "eligible_for_return": True,
+                "customer_sentiment": "neutral",
+                "customer_id": "CUST-REG-0888",
+                "customer_name": "Jack Ryan"
+            },
+            "ORD-555": {
+                "status": "delivered",
+                "items": ["Luxury Night Cream"],
+                "eligible_for_return": True,
+                "customer_sentiment": "positive",
+                "customer_id": "CUST-REG-0555",
+                "customer_name": "Trinity"
+            },
+            "ORD-111": {
+                "status": "delivered",
+                "items": ["Silk Underwear"],
+                "eligible_for_return": True,
+                "customer_sentiment": "neutral",
+                "customer_id": "CUST-REG-0111",
+                "customer_name": "James Bond"
+            },
+            "ORD-222": {
+                "status": "delivered",
+                "items": ["Smartphone"],
+                "eligible_for_return": True,
+                "customer_sentiment": "neutral",
+                "customer_id": "CUST-VIP-0222",
+                "customer_name": "Ethan Hunt",
+                "notes": "Box has been opened"
+            },
+            "ORD-333": {
+                "status": "delivered",
+                "items": ["Designer Running Socks"],
+                "eligible_for_return": True,
+                "customer_sentiment": "neutral",
+                "customer_id": "CUST-REG-0333",
+                "customer_name": "Jack Sparrow"
+            },
+            "ORD-444": {
+                "status": "delivered",
+                "items": ["Premium Facial Serum"],
+                "eligible_for_return": True,
+                "customer_sentiment": "positive",
+                "customer_id": "CUST-VIP-0444",
+                "customer_name": "Lara Croft",
+                "notes": "Product has been opened and tested"
+            }
         }
 
         result = mock_db.get(order_id)
@@ -76,7 +153,172 @@ class EnterpriseServices:
     def escalate_to_human(order_id, reason):
         logger.critical(f"API CALL: ESCALATION TRIGGERED | Order: {order_id} | Reason: {reason}")
         return {"status": "escalated", "ticket_id": f"TKT-{random.randint(100,999)}", "message": "Agent requested human intervention."}
-    
+
+    @staticmethod
+    def check_vip_status(customer_id):
+        """
+        Check if a customer has VIP or high-value status.
+        Mock service that simulates CRM/customer database lookup.
+
+        In production, this would integrate with:
+        - CRM system (Salesforce, HubSpot, etc.)
+        - Customer data warehouse
+        - Loyalty program database
+
+        Args:
+            customer_id: Customer identifier
+
+        Returns:
+            dict with is_vip status and optional metadata
+        """
+        logger.info(f"API CALL: Checking VIP status for Customer ID: {customer_id}")
+
+        # Mock VIP Database
+        # VIP criteria could be based on: lifetime value, years as customer, tier status, etc.
+        vip_customers = {
+            "CUST-VIP-0001": {"is_vip": True, "tier": "Gold", "lifetime_value": 15000, "years_active": 5},
+            "CUST-VIP-9921": {"is_vip": True, "tier": "Platinum", "lifetime_value": 50000, "years_active": 10},
+            "CUST-VIP-0222": {"is_vip": True, "tier": "Silver", "lifetime_value": 8000, "years_active": 3},
+            "CUST-VIP-0444": {"is_vip": True, "tier": "Gold", "lifetime_value": 12000, "years_active": 4}
+        }
+
+        customer_data = vip_customers.get(customer_id)
+
+        if customer_data:
+            logger.info(f"API SUCCESS: Customer {customer_id} is VIP - Tier: {customer_data['tier']}")
+            return {
+                "is_vip": True,
+                "customer_id": customer_id,
+                "tier": customer_data.get("tier"),
+                "lifetime_value": customer_data.get("lifetime_value"),
+                "years_active": customer_data.get("years_active")
+            }
+        else:
+            logger.info(f"API SUCCESS: Customer {customer_id} is NOT VIP (regular customer)")
+            return {
+                "is_vip": False,
+                "customer_id": customer_id,
+                "message": "Customer does not have VIP status"
+            }
+
+    @staticmethod
+    def get_customer_info(customer_id):
+        """
+        Retrieve comprehensive customer information for greeting and personalization.
+        Returns customer details including name, VIP status, tier, and tenure.
+
+        This is used for:
+        - Personalized greeting after order lookup
+        - Displaying customer loyalty information
+        - VIP acknowledgment
+
+        Args:
+            customer_id: Customer identifier
+
+        Returns:
+            dict with customer_name, is_vip, tier (if VIP), years_active, member_since
+        """
+        logger.info(f"API CALL: Fetching customer info for Customer ID: {customer_id}")
+
+        # Comprehensive Customer Database (VIP and Regular customers)
+        # In production, this would integrate with CRM system
+        customer_database = {
+            # VIP Customers
+            "CUST-VIP-0001": {
+                "customer_name": "John McClane",
+                "is_vip": True,
+                "tier": "Gold",
+                "lifetime_value": 15000,
+                "years_active": 5,
+                "member_since": "2021-01-15"
+            },
+            "CUST-VIP-9921": {
+                "customer_name": "Sarah Connor",
+                "is_vip": True,
+                "tier": "Platinum",
+                "lifetime_value": 50000,
+                "years_active": 10,
+                "member_since": "2016-03-20"
+            },
+            "CUST-VIP-0222": {
+                "customer_name": "Ethan Hunt",
+                "is_vip": True,
+                "tier": "Silver",
+                "lifetime_value": 8000,
+                "years_active": 3,
+                "member_since": "2023-05-10"
+            },
+            "CUST-VIP-0444": {
+                "customer_name": "Lara Croft",
+                "is_vip": True,
+                "tier": "Gold",
+                "lifetime_value": 12000,
+                "years_active": 4,
+                "member_since": "2022-07-01"
+            },
+            # Regular Customers
+            "CUST-REG-0456": {
+                "customer_name": "Jason Bourne",
+                "is_vip": False,
+                "years_active": 2,
+                "member_since": "2024-02-14"
+            },
+            "CUST-REG-0999": {
+                "customer_name": "Neo Anderson",
+                "is_vip": False,
+                "years_active": 0.5,  # 6 months
+                "member_since": "2025-07-01"
+            },
+            "CUST-REG-0888": {
+                "customer_name": "Jack Ryan",
+                "is_vip": False,
+                "years_active": 3,
+                "member_since": "2023-01-20"
+            },
+            "CUST-REG-0555": {
+                "customer_name": "Trinity",
+                "is_vip": False,
+                "years_active": 1.5,
+                "member_since": "2024-07-15"
+            },
+            "CUST-REG-0111": {
+                "customer_name": "James Bond",
+                "is_vip": False,
+                "years_active": 0.8,  # ~10 months
+                "member_since": "2025-03-10"
+            },
+            "CUST-REG-0333": {
+                "customer_name": "Jack Sparrow",
+                "is_vip": False,
+                "years_active": 6,
+                "member_since": "2020-01-05"
+            }
+        }
+
+        customer_data = customer_database.get(customer_id)
+
+        if customer_data:
+            logger.info(
+                f"API SUCCESS: Customer info retrieved for {customer_id} - "
+                f"{customer_data['customer_name']} ({'VIP' if customer_data['is_vip'] else 'Regular'})"
+            )
+            return {
+                "found": True,
+                "customer_id": customer_id,
+                "customer_name": customer_data.get("customer_name"),
+                "is_vip": customer_data.get("is_vip", False),
+                "tier": customer_data.get("tier"),  # Only for VIP customers
+                "years_active": customer_data.get("years_active"),
+                "member_since": customer_data.get("member_since"),
+                "lifetime_value": customer_data.get("lifetime_value")  # Only for VIP customers
+            }
+        else:
+            logger.warning(f"API FAIL: Customer not found: {customer_id}")
+            return {
+                "found": False,
+                "customer_id": customer_id,
+                "error": "Customer not found in system"
+            }
 
     @staticmethod
     def get_policy_info(policy_type):

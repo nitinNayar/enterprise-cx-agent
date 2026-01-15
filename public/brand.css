@@ -54,6 +54,13 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
+/* Override any Chainlit default colors on headings in dark mode */
+@media (prefers-color-scheme: dark) {
+  h1, h2, h3, h4, h5, h6 {
+    color: #f9fafb !important;
+  }
+}
+
 /* ============================================
    HEADER & NAVIGATION
    ============================================ */
@@ -215,6 +222,67 @@ button:hover, .button:hover {
   body {
     background-color: var(--brand-dark-bg);
     color: var(--brand-dark-text);
+  }
+
+  /* Ensure ALL headings are visible in dark mode - use multiple selectors for higher specificity */
+  h1, h2, h3, h4, h5, h6,
+  .message h1, .message h2, .message h3,
+  .message h4, .message h5, .message h6,
+  div h1, div h2, div h3, div h4, div h5, div h6,
+  [class*="message"] h1, [class*="message"] h2, [class*="message"] h3,
+  [class*="message"] h4, [class*="message"] h5, [class*="message"] h6,
+  [class*="step"] h1, [class*="step"] h2, [class*="step"] h3,
+  [class*="step"] h4, [class*="step"] h5, [class*="step"] h6 {
+    color: #f3f4f6 !important;
+  }
+
+  /* Specifically target markdown rendered content */
+  .markdown h1, .markdown h2, .markdown h3,
+  .markdown h4, .markdown h5, .markdown h6 {
+    color: #f3f4f6 !important;
+  }
+
+  /* Style code blocks for better contrast */
+  code {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    padding: 0.125rem 0.25rem;
+    border-radius: 3px;
+  }
+
+  pre code {
+    background-color: #1f2937;
+    color: #e5e7eb;
+  }
+
+  /* Improve link visibility in dark mode */
+  a {
+    color: #60a5fa;
+  }
+
+  a:hover {
+    color: #93c5fd;
+  }
+
+  /* Better blockquote styling in dark mode */
+  blockquote {
+    border-left: 4px solid #374151;
+    color: #d1d5db;
+  }
+
+  /* Override any brand primary colors on headings in dark mode */
+  h1, h2, h3, h4, h5, h6 {
+    color: #f9fafb !important;
+  }
+
+  /* Strong/bold text should also be light */
+  strong, b {
+    color: #f9fafb;
+  }
+
+  /* Ensure paragraph text is readable */
+  p {
+    color: #e5e7eb;
   }
 }
 

@@ -243,6 +243,39 @@ class SupportAgent:
                             rationale=tool_input.get("reason")
                         )
 
+                    elif tool_name == "check_vip_status":
+                        result = EnterpriseServices.check_vip_status(tool_input.get("customer_id"))
+
+                        # Log tool result
+                        audit_logger.info(
+                            f"VIP status check for customer {tool_input.get('customer_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'customer_id': tool_input.get('customer_id'),
+                                'is_vip': result.get('is_vip') if result else False,
+                                'vip_tier': result.get('tier') if result else None,
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
+                    elif tool_name == "get_customer_info":
+                        result = EnterpriseServices.get_customer_info(tool_input.get("customer_id"))
+
+                        # Log tool result with proper null handling
+                        audit_logger.info(
+                            f"Customer info retrieved for {tool_input.get('customer_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'customer_id': tool_input.get('customer_id'),
+                                'customer_name': result.get('customer_name', 'Unknown') if (result and result.get('found')) else 'Unknown',
+                                'is_vip': result.get('is_vip', False) if (result and result.get('found')) else False,
+                                'years_active': result.get('years_active', 0) if (result and result.get('found')) else 0,
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
                     else:
                         logger.error(f"Unknown tool called: {tool_name}")
                         result = {"error": f"Tool '{tool_name}' not found."}

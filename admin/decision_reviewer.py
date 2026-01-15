@@ -93,7 +93,8 @@ def format_decision_trace(session_id: str, events: list) -> str:
     Returns:
         Markdown-formatted string for display
     """
-    output = f"# Decision Trace: `{session_id}`\n\n"
+    # Use HTML with inline styles for proper dark mode visibility
+    output = f'<h1 style="color: #f9fafb; margin-bottom: 1rem;">Decision Trace: <code>{session_id}</code></h1>\n\n'
 
     # Deduplicate consecutive identical events
     deduplicated_events = []
@@ -123,9 +124,27 @@ def format_decision_trace(session_id: str, events: list) -> str:
                         json.dumps(event.get('tool_input', {})) == json.dumps(prev_event.get('tool_input', {}))):
                         is_duplicate = True
                 elif event_type == "TOOL_RESULT":
-                    if (event.get('tool_name') == prev_event.get('tool_name') and
-                        event.get('order_id') == prev_event.get('order_id')):
-                        is_duplicate = True
+                    # For tool results, check tool_name and relevant ID field
+                    tool_name = event.get('tool_name')
+                    prev_tool_name = prev_event.get('tool_name')
+
+                    if tool_name == prev_tool_name:
+                        # Different tools have different identifying fields
+                        if tool_name in ["look_up_order", "execute_order_return", "escalate_to_human"]:
+                            # These tools use order_id
+                            if event.get('order_id') == prev_event.get('order_id'):
+                                is_duplicate = True
+                        elif tool_name in ["check_vip_status", "get_customer_info"]:
+                            # These tools use customer_id
+                            if event.get('customer_id') == prev_event.get('customer_id'):
+                                is_duplicate = True
+                        elif tool_name == "get_policy_info":
+                            # This tool uses policy_type
+                            if event.get('policy_type') == prev_event.get('policy_type'):
+                                is_duplicate = True
+                        else:
+                            # Generic fallback - mark as duplicate if same tool_name
+                            is_duplicate = True
                 elif event_type == "USER_MESSAGE":
                     if event.get('user_message') == prev_event.get('user_message'):
                         is_duplicate = True
@@ -153,6 +172,15 @@ def format_decision_trace(session_id: str, events: list) -> str:
         if not is_duplicate:
             deduplicated_events.append(event)
             prev_event = event
+        else:
+            # If it's a duplicate TOOL_RESULT, replace the previous entry with this one
+            # (later entries have more complete data after formatter was updated)
+            if event_type == "TOOL_RESULT" and deduplicated_events:
+                # Replace the last entry if it was the same tool
+                if deduplicated_events[-1].get('event_type') == 'TOOL_RESULT' and \
+                   deduplicated_events[-1].get('tool_name') == event.get('tool_name'):
+                    deduplicated_events[-1] = event
+                    prev_event = event
 
     # Display total count (after deduplication)
     output += f"**Total Events:** {len(deduplicated_events)}\n\n"
@@ -168,7 +196,8 @@ def format_decision_trace(session_id: str, events: list) -> str:
         # Increment event number only for events we're displaying
         event_num += 1
 
-        output += f"## Event {event_num}: {event_type}\n"
+        # Use HTML with inline styles to ensure proper color in dark mode
+        output += f'<h2 style="color: #f9fafb; margin-top: 1.5rem; margin-bottom: 0.5rem;">Event {event_num}: {event_type}</h2>\n\n'
         output += f"**Time:** {timestamp}\n"
         output += f"**Message:** {message}\n\n"
 
@@ -230,6 +259,44 @@ def format_decision_trace(session_id: str, events: list) -> str:
                 output += f"**Order ID:** {order_id}\n"
                 output += f"**Reason:** {escalation_reason}\n"
                 output += f"**Ticket ID:** {ticket_id}\n\n"
+
+            elif tool_name == "check_vip_status":
+                customer_id = event.get('customer_id')
+                is_vip = event.get('is_vip', False)
+                vip_tier = event.get('vip_tier')
+                output += f"**Customer ID:** {customer_id}\n"
+                if is_vip:
+                    output += f"**VIP Status:** ✅ Yes ({vip_tier} tier)\n\n"
+                else:
+                    output += f"**VIP Status:** ❌ No (Regular customer)\n\n"
+
+            elif tool_name == "get_customer_info":
+                customer_id = event.get('customer_id', 'Unknown')
+                customer_name = event.get('customer_name', 'Unknown')
+                is_vip = event.get('is_vip', False)
+                years_active = event.get('years_active', 0)
+
+                # Display customer info
+                if customer_name != 'Unknown' and customer_id != 'Unknown':
+                    output += f"**Customer:** {customer_name} (`{customer_id}`)\n"
+                else:
+                    output += f"**Customer ID:** {customer_id}\n"
+                    output += f"**Name:** {customer_name}\n"
+
+                # VIP Status
+                if is_vip:
+                    output += f"**VIP Status:** ✅ Yes\n"
+                else:
+                    output += f"**VIP Status:** ❌ No\n"
+
+                # Format tenure display
+                if years_active and years_active >= 1:
+                    output += f"**Tenure:** {years_active:.1f} years\n\n"
+                elif years_active and years_active > 0:
+                    months = int(years_active * 12)
+                    output += f"**Tenure:** {months} months\n\n"
+                else:
+                    output += f"**Tenure:** Not available\n\n"
 
             else:
                 output += "**Result:** Completed\n\n"
