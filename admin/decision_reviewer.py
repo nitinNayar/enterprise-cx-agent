@@ -231,6 +231,34 @@ def format_decision_trace(session_id: str, events: list) -> str:
                 output += f"**Reason:** {escalation_reason}\n"
                 output += f"**Ticket ID:** {ticket_id}\n\n"
 
+            elif tool_name == "check_vip_status":
+                customer_id = event.get('customer_id')
+                is_vip = event.get('is_vip', False)
+                vip_tier = event.get('vip_tier')
+                output += f"**Customer ID:** {customer_id}\n"
+                if is_vip:
+                    output += f"**VIP Status:** ✅ Yes ({vip_tier} tier)\n\n"
+                else:
+                    output += f"**VIP Status:** ❌ No (Regular customer)\n\n"
+
+            elif tool_name == "get_customer_info":
+                customer_id = event.get('customer_id')
+                customer_name = event.get('customer_name', 'Unknown')
+                is_vip = event.get('is_vip', False)
+                years_active = event.get('years_active', 0)
+                output += f"**Customer:** {customer_name} ({customer_id})\n"
+                if is_vip:
+                    output += f"**VIP Status:** ✅ Yes\n"
+                else:
+                    output += f"**VIP Status:** ❌ No\n"
+
+                # Format tenure display
+                if years_active >= 1:
+                    output += f"**Tenure:** {years_active:.1f} years\n\n"
+                else:
+                    months = int(years_active * 12)
+                    output += f"**Tenure:** {months} months\n\n"
+
             else:
                 output += "**Result:** Completed\n\n"
 

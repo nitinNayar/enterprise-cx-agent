@@ -216,6 +216,45 @@ button:hover, .button:hover {
     background-color: var(--brand-dark-bg);
     color: var(--brand-dark-text);
   }
+
+  /* Ensure headings are visible in dark mode */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--brand-dark-text) !important;
+  }
+
+  /* Ensure markdown content in messages is visible */
+  .message h1, .message h2, .message h3,
+  .message h4, .message h5, .message h6 {
+    color: var(--brand-dark-text) !important;
+  }
+
+  /* Style code blocks for better contrast */
+  code {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    padding: 0.125rem 0.25rem;
+    border-radius: 3px;
+  }
+
+  pre code {
+    background-color: #1f2937;
+    color: #e5e7eb;
+  }
+
+  /* Improve link visibility in dark mode */
+  a {
+    color: #60a5fa;
+  }
+
+  a:hover {
+    color: #93c5fd;
+  }
+
+  /* Better blockquote styling in dark mode */
+  blockquote {
+    border-left: 4px solid #374151;
+    color: #d1d5db;
+  }
 }
 
 /* ============================================
