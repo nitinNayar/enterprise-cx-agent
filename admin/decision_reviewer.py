@@ -93,7 +93,8 @@ def format_decision_trace(session_id: str, events: list) -> str:
     Returns:
         Markdown-formatted string for display
     """
-    output = f"# Decision Trace: `{session_id}`\n\n"
+    # Use HTML with inline styles for proper dark mode visibility
+    output = f'<h1 style="color: #f9fafb; margin-bottom: 1rem;">Decision Trace: <code>{session_id}</code></h1>\n\n'
 
     # Deduplicate consecutive identical events
     deduplicated_events = []
@@ -195,7 +196,8 @@ def format_decision_trace(session_id: str, events: list) -> str:
         # Increment event number only for events we're displaying
         event_num += 1
 
-        output += f"## Event {event_num}: {event_type}\n"
+        # Use HTML with inline styles to ensure proper color in dark mode
+        output += f'<h2 style="color: #f9fafb; margin-top: 1.5rem; margin-bottom: 0.5rem;">Event {event_num}: {event_type}</h2>\n\n'
         output += f"**Time:** {timestamp}\n"
         output += f"**Message:** {message}\n\n"
 
