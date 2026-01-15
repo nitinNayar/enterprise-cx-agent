@@ -51,7 +51,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-VIP-0001",
-                "customer_name": "Michael Anderson"
+                "customer_name": "John McClane"
             },
             "ORD-456": {
                 "status": "delivered",
@@ -60,7 +60,7 @@ class EnterpriseServices:
                 "return_reason": "window_expired",
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0456",
-                "customer_name": "Jessica Martinez"
+                "customer_name": "Jason Bourne"
             },
             "ORD-999": {
                 "status": "processing",
@@ -68,7 +68,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "angry",
                 "customer_id": "CUST-REG-0999",
-                "customer_name": "David Thompson"
+                "customer_name": "Ellen Ripley"
             },
             "ORD-777": {
                 "status": "delivered",
@@ -76,7 +76,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-VIP-9921",
-                "customer_name": "Emily Parker"
+                "customer_name": "Sarah Connor"
             },
             "ORD-888": {
                 "status": "delivered",
@@ -84,7 +84,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0888",
-                "customer_name": "Ryan Cooper"
+                "customer_name": "Jack Ryan"
             },
             "ORD-555": {
                 "status": "delivered",
@@ -92,7 +92,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "positive",
                 "customer_id": "CUST-REG-0555",
-                "customer_name": "Amanda Foster"
+                "customer_name": "Trinity"
             },
             "ORD-111": {
                 "status": "delivered",
@@ -100,7 +100,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0111",
-                "customer_name": "Brian Mitchell"
+                "customer_name": "James Bond"
             },
             "ORD-222": {
                 "status": "delivered",
@@ -108,7 +108,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-VIP-0222",
-                "customer_name": "Sophia Chen",
+                "customer_name": "Ethan Hunt",
                 "notes": "Box has been opened"
             },
             "ORD-333": {
@@ -117,7 +117,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0333",
-                "customer_name": "Christopher Lee"
+                "customer_name": "Evelyn Salt"
             },
             "ORD-444": {
                 "status": "delivered",
@@ -125,7 +125,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "positive",
                 "customer_id": "CUST-VIP-0444",
-                "customer_name": "Olivia Rodriguez",
+                "customer_name": "Lara Croft",
                 "notes": "Product has been opened and tested"
             }
         }
@@ -225,7 +225,7 @@ class EnterpriseServices:
         customer_database = {
             # VIP Customers
             "CUST-VIP-0001": {
-                "customer_name": "Michael Anderson",
+                "customer_name": "John McClane",
                 "is_vip": True,
                 "tier": "Gold",
                 "lifetime_value": 15000,
@@ -233,7 +233,7 @@ class EnterpriseServices:
                 "member_since": "2021-01-15"
             },
             "CUST-VIP-9921": {
-                "customer_name": "Emily Parker",
+                "customer_name": "Sarah Connor",
                 "is_vip": True,
                 "tier": "Platinum",
                 "lifetime_value": 50000,
@@ -241,7 +241,7 @@ class EnterpriseServices:
                 "member_since": "2016-03-20"
             },
             "CUST-VIP-0222": {
-                "customer_name": "Sophia Chen",
+                "customer_name": "Ethan Hunt",
                 "is_vip": True,
                 "tier": "Silver",
                 "lifetime_value": 8000,
@@ -249,7 +249,7 @@ class EnterpriseServices:
                 "member_since": "2023-05-10"
             },
             "CUST-VIP-0444": {
-                "customer_name": "Olivia Rodriguez",
+                "customer_name": "Lara Croft",
                 "is_vip": True,
                 "tier": "Gold",
                 "lifetime_value": 12000,
@@ -258,37 +258,37 @@ class EnterpriseServices:
             },
             # Regular Customers
             "CUST-REG-0456": {
-                "customer_name": "Jessica Martinez",
+                "customer_name": "Jason Bourne",
                 "is_vip": False,
                 "years_active": 2,
                 "member_since": "2024-02-14"
             },
             "CUST-REG-0999": {
-                "customer_name": "David Thompson",
+                "customer_name": "Ellen Ripley",
                 "is_vip": False,
                 "years_active": 0.5,  # 6 months
                 "member_since": "2025-07-01"
             },
             "CUST-REG-0888": {
-                "customer_name": "Ryan Cooper",
+                "customer_name": "Jack Ryan",
                 "is_vip": False,
                 "years_active": 3,
                 "member_since": "2023-01-20"
             },
             "CUST-REG-0555": {
-                "customer_name": "Amanda Foster",
+                "customer_name": "Trinity",
                 "is_vip": False,
                 "years_active": 1.5,
                 "member_since": "2024-07-15"
             },
             "CUST-REG-0111": {
-                "customer_name": "Brian Mitchell",
+                "customer_name": "James Bond",
                 "is_vip": False,
                 "years_active": 0.8,  # ~10 months
                 "member_since": "2025-03-10"
             },
             "CUST-REG-0333": {
-                "customer_name": "Christopher Lee",
+                "customer_name": "Evelyn Salt",
                 "is_vip": False,
                 "years_active": 6,
                 "member_since": "2020-01-05"
