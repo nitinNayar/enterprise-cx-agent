@@ -8,7 +8,22 @@ tools_schema = [
                 "order_id": {"type": "string"}
             },
             "required": ["order_id"]
-        } 
+        }
+    },
+
+    {
+        "name": "get_customer_info",
+        "description": "Retrieve customer information for personalized greeting. MANDATORY: Call this immediately after look_up_order to greet the customer by name and acknowledge their VIP status/loyalty. Use the customer_id from the order lookup result.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string",
+                    "description": "The customer ID from the order lookup result"
+                }
+            },
+            "required": ["customer_id"]
+        }
     },
 
     {
@@ -59,14 +74,29 @@ tools_schema = [
     },
 
     {
+        "name": "check_vip_status",
+        "description": "Check if a customer has VIP or high-value status. MANDATORY: Call this automatically whenever a return is denied by policy to determine if the customer qualifies for exception consideration. Do NOT wait for customer to ask - this should be automatic.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string",
+                    "description": "The customer ID from the order lookup result"
+                }
+            },
+            "required": ["customer_id"]
+        }
+    },
+
+    {
         "name": "check_precedents",
-        "description": "Query the Kùzu Context Graph for past human decisions. Use this when a user asks for an exception (e.g., VIP, holiday gift, high-value customer).",
+        "description": "Query the Kùzu Context Graph for past human decisions. Use this when a customer is VIP AND their return was denied by standard policy. This checks if there are precedents for making exceptions for VIP customers.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "query_tags_str": {
                     "type": "string",
-                    "description": "Space-separated lowercase keywords describing the context. Extract relevant keywords from the customer's request (e.g., 'vip socks return exception', 'holiday gift late', 'electronics opened high_value'). Use lowercase for all keywords."
+                    "description": "Space-separated lowercase keywords describing the context. Extract relevant keywords from the situation (e.g., 'vip socks return exception', 'holiday gift late', 'electronics opened high_value'). Use lowercase for all keywords."
                 }
             },
             "required": ["query_tags_str"]
