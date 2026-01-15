@@ -68,7 +68,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "angry",
                 "customer_id": "CUST-REG-0999",
-                "customer_name": "Ellen Ripley"
+                "customer_name": "Neo Anderson"
             },
             "ORD-777": {
                 "status": "delivered",
@@ -117,7 +117,7 @@ class EnterpriseServices:
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0333",
-                "customer_name": "Evelyn Salt"
+                "customer_name": "Jack Sparrow"
             },
             "ORD-444": {
                 "status": "delivered",
@@ -264,7 +264,7 @@ class EnterpriseServices:
                 "member_since": "2024-02-14"
             },
             "CUST-REG-0999": {
-                "customer_name": "Ellen Ripley",
+                "customer_name": "Neo Anderson",
                 "is_vip": False,
                 "years_active": 0.5,  # 6 months
                 "member_since": "2025-07-01"
@@ -288,7 +288,7 @@ class EnterpriseServices:
                 "member_since": "2025-03-10"
             },
             "CUST-REG-0333": {
-                "customer_name": "Evelyn Salt",
+                "customer_name": "Jack Sparrow",
                 "is_vip": False,
                 "years_active": 6,
                 "member_since": "2020-01-05"
