@@ -165,6 +165,9 @@ logs/
 .chainlit/.langchain.db
 .chainlit/cache/
 
+# Claude Code local settings (user-specific)
+.claude/settings.local.json
+
 
 # -------------------------
 # Project Specific Artifacts
@@ -186,3 +189,8 @@ otel_traces.json
 
 # Ignore the database storage folder
 context_graph_db/
+
+# Kùzu Graph Database (runtime data - regenerate with scripts/init_graph.py)
+data/context_graph_db
+data/context_graph_db.backup-*
+data/*.backup-*
