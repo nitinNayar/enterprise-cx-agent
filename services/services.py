@@ -47,7 +47,7 @@ class EnterpriseServices:
         mock_db = {
             "ORD-123": {
                 "status": "shipped",
-                "items": ["Wireless Headphones"],
+                "items": ["Tactical duct tape multi-pack (For HVAC emergencies)"],
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-VIP-0001",
@@ -55,7 +55,7 @@ class EnterpriseServices:
             },
             "ORD-456": {
                 "status": "delivered",
-                "items": ["Gaming Mouse"],
+                "items": ["Prepaid burner phones (12 pack)"],
                 "eligible_for_return": False,
                 "return_reason": "window_expired",
                 "customer_sentiment": "neutral",
@@ -64,7 +64,7 @@ class EnterpriseServices:
             },
             "ORD-999": {
                 "status": "processing",
-                "items": ["4K Monitor"],
+                "items": ["Black trench coat"],
                 "eligible_for_return": True,
                 "customer_sentiment": "angry",
                 "customer_id": "CUST-REG-0999",
@@ -72,7 +72,7 @@ class EnterpriseServices:
             },
             "ORD-777": {
                 "status": "delivered",
-                "items": ["Premium Wool Socks"],
+                "items": ["Military-grade survival knife set"],
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-VIP-9921",
@@ -80,7 +80,7 @@ class EnterpriseServices:
             },
             "ORD-888": {
                 "status": "delivered",
-                "items": ["$50 PlayStation Store Card"],
+                "items": ["CIA analyst desk organizer"],
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0888",
@@ -88,7 +88,7 @@ class EnterpriseServices:
             },
             "ORD-555": {
                 "status": "delivered",
-                "items": ["Luxury Night Cream"],
+                "items": ["Black leather motorcycle jacket"],
                 "eligible_for_return": True,
                 "customer_sentiment": "positive",
                 "customer_id": "CUST-REG-0555",
@@ -96,7 +96,7 @@ class EnterpriseServices:
             },
             "ORD-111": {
                 "status": "delivered",
-                "items": ["Silk Underwear"],
+                "items": ["Martini shaker set (shaken, not stirred)"],
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0111",
@@ -104,7 +104,7 @@ class EnterpriseServices:
             },
             "ORD-222": {
                 "status": "delivered",
-                "items": ["Smartphone"],
+                "items": ["Custom face mask prosthetics kit"],
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-VIP-0222",
@@ -113,7 +113,7 @@ class EnterpriseServices:
             },
             "ORD-333": {
                 "status": "delivered",
-                "items": ["Designer Running Socks"],
+                "items": ["Eyeliner and kohl pencil set"],
                 "eligible_for_return": True,
                 "customer_sentiment": "neutral",
                 "customer_id": "CUST-REG-0333",
@@ -121,7 +121,7 @@ class EnterpriseServices:
             },
             "ORD-444": {
                 "status": "delivered",
-                "items": ["Premium Facial Serum"],
+                "items": ["Archaeological excavation tools"],
                 "eligible_for_return": True,
                 "customer_sentiment": "positive",
                 "customer_id": "CUST-VIP-0444",
