@@ -3,6 +3,7 @@ from agent.agent import SupportAgent
 from observability.tracing import setup_phoenix_tracing
 from logging_config import setup_logging
 from admin.decision_reviewer import handle_admin_query
+from typing import Any 
 
 # Initialize Logging FIRST (before anything else)
 audit_logger = setup_logging()
@@ -11,7 +12,7 @@ audit_logger = setup_logging()
 setup_phoenix_tracing()
 
 @cl.set_chat_profiles
-async def chat_profile():
+async def chat_profile() -> list[cl.ChatProfile]:
     """
     Define two chat profiles:
     - TrueCart Support: Normal agent interaction
@@ -31,13 +32,13 @@ async def chat_profile():
     ]
 
 @cl.on_chat_start
-async def start():
+async def start() -> None:
     """
     Initialize session based on selected chat profile.
     Routes to either customer agent or admin viewer.
     """
     # Get selected profile from session
-    chat_profile = cl.user_session.get("chat_profile")
+    chat_profile: str | None = cl.user_session.get("chat_profile")
 
     if chat_profile == "TrueCart Admin":
         # Admin mode: Store profile flag and send instructions
@@ -46,7 +47,7 @@ async def start():
         await cl.Message(
             content="""# Decision Trace Viewer
 
-Welcome to the decision review interface. This tool allows you to investigate agent decisions from any customer session.
+Welcome to the INTERNAL decision review interface. This tool allows you to investigate agent decisions from any customer session.
 
 **How to use:**
 1. Enter a session ID in the format: `SESSION-xxxxxxxx`
@@ -55,7 +56,6 @@ Welcome to the decision review interface. This tool allows you to investigate ag
 
 **Example Session IDs:**
 - `SESSION-e87df8dd`
-- `SESSION-56ee7734`
 - `TEST-SESSION-001`
 
 Enter a session ID to begin investigation:"""
@@ -66,25 +66,25 @@ Enter a session ID to begin investigation:"""
         cl.user_session.set("agent", SupportAgent())
     
 @cl.on_message
-async def main(message: cl.Message):
+async def main(message: cl.Message) -> None:
     """
     Route message handling based on chat profile mode.
     """
-    mode = cl.user_session.get("mode")
+    mode: str | None = cl.user_session.get("mode")
 
     if mode == "admin":
         # Handle admin session ID query
         await handle_admin_query(message.content)
     else:
         # Existing customer agent logic
-        agent = cl.user_session.get("agent")
+        agent: Any = cl.user_session.get("agent")
 
         # Send an empty message to show the "Thinking" state
-        msg = cl.Message(content="")
+        msg: cl.Message = cl.Message(content="")
         await msg.send()
 
         # Run the Agent Logic (Synchronous call to Anthropic)
-        response = agent.run(message.content)
+        response: str = agent.run(message.content)
 
         # Update the UI with the final response
         msg.content = response

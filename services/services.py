@@ -3,7 +3,10 @@ import random
 import os
 import kuzu
 from datetime import datetime
+from typing import Any
+
 from logging_config import get_session_id
+from data.data_loader import MOCK_ORDERS, MOCK_CUSTOMERS
 
 # Get loggers (logging configured by logging_config.py)
 logger = logging.getLogger("BackendServices")
@@ -41,96 +44,9 @@ class EnterpriseServices:
     @staticmethod
     def look_up_order(order_id):
         logger.info(f"API CALL: Querying OMS for Order ID: {order_id}")
-        
-        # Mock Database
 
-        mock_db = {
-            "ORD-123": {
-                "status": "shipped",
-                "items": ["Tactical duct tape multi-pack (For HVAC emergencies)"],
-                "eligible_for_return": True,
-                "customer_sentiment": "neutral",
-                "customer_id": "CUST-VIP-0001",
-                "customer_name": "John McClane"
-            },
-            "ORD-456": {
-                "status": "delivered",
-                "items": ["Prepaid burner phones (12 pack)"],
-                "eligible_for_return": False,
-                "return_reason": "window_expired",
-                "customer_sentiment": "neutral",
-                "customer_id": "CUST-REG-0456",
-                "customer_name": "Jason Bourne"
-            },
-            "ORD-999": {
-                "status": "processing",
-                "items": ["Black trench coat"],
-                "eligible_for_return": True,
-                "customer_sentiment": "angry",
-                "customer_id": "CUST-REG-0999",
-                "customer_name": "Neo Anderson"
-            },
-            "ORD-777": {
-                "status": "delivered",
-                "items": ["Military-grade survival knife set"],
-                "eligible_for_return": True,
-                "customer_sentiment": "neutral",
-                "customer_id": "CUST-VIP-9921",
-                "customer_name": "Sarah Connor"
-            },
-            "ORD-888": {
-                "status": "delivered",
-                "items": ["CIA analyst desk organizer"],
-                "eligible_for_return": True,
-                "customer_sentiment": "neutral",
-                "customer_id": "CUST-REG-0888",
-                "customer_name": "Jack Ryan"
-            },
-            "ORD-555": {
-                "status": "delivered",
-                "items": ["Black leather motorcycle jacket"],
-                "eligible_for_return": True,
-                "customer_sentiment": "positive",
-                "customer_id": "CUST-REG-0555",
-                "customer_name": "Trinity"
-            },
-            "ORD-111": {
-                "status": "delivered",
-                "items": ["Martini shaker set (shaken, not stirred)"],
-                "eligible_for_return": True,
-                "customer_sentiment": "neutral",
-                "customer_id": "CUST-REG-0111",
-                "customer_name": "James Bond"
-            },
-            "ORD-222": {
-                "status": "delivered",
-                "items": ["Custom face mask prosthetics kit"],
-                "eligible_for_return": True,
-                "customer_sentiment": "neutral",
-                "customer_id": "CUST-VIP-0222",
-                "customer_name": "Ethan Hunt",
-                "notes": "Box has been opened"
-            },
-            "ORD-333": {
-                "status": "delivered",
-                "items": ["Eyeliner and kohl pencil set"],
-                "eligible_for_return": True,
-                "customer_sentiment": "neutral",
-                "customer_id": "CUST-REG-0333",
-                "customer_name": "Jack Sparrow"
-            },
-            "ORD-444": {
-                "status": "delivered",
-                "items": ["Archaeological excavation tools"],
-                "eligible_for_return": True,
-                "customer_sentiment": "positive",
-                "customer_id": "CUST-VIP-0444",
-                "customer_name": "Lara Croft",
-                "notes": "Product has been opened and tested"
-            }
-        }
-
-        result = mock_db.get(order_id)
+        # Use mock order database loaded from JSON file
+        result = MOCK_ORDERS.get(order_id)
         if result:
             logger.info(f"API SUCCESS: Order found: {order_id} | Status: {result['status']}")
             return result
@@ -173,18 +89,10 @@ class EnterpriseServices:
         """
         logger.info(f"API CALL: Checking VIP status for Customer ID: {customer_id}")
 
-        # Mock VIP Database
-        # VIP criteria could be based on: lifetime value, years as customer, tier status, etc.
-        vip_customers = {
-            "CUST-VIP-0001": {"is_vip": True, "tier": "Gold", "lifetime_value": 15000, "years_active": 5},
-            "CUST-VIP-9921": {"is_vip": True, "tier": "Platinum", "lifetime_value": 50000, "years_active": 10},
-            "CUST-VIP-0222": {"is_vip": True, "tier": "Silver", "lifetime_value": 8000, "years_active": 3},
-            "CUST-VIP-0444": {"is_vip": True, "tier": "Gold", "lifetime_value": 12000, "years_active": 4}
-        }
+        # Use customer database loaded from JSON file
+        customer_data = MOCK_CUSTOMERS.get(customer_id)
 
-        customer_data = vip_customers.get(customer_id)
-
-        if customer_data:
+        if customer_data and customer_data.get("is_vip"):
             logger.info(f"API SUCCESS: Customer {customer_id} is VIP - Tier: {customer_data['tier']}")
             return {
                 "is_vip": True,
@@ -220,82 +128,8 @@ class EnterpriseServices:
         """
         logger.info(f"API CALL: Fetching customer info for Customer ID: {customer_id}")
 
-        # Comprehensive Customer Database (VIP and Regular customers)
-        # In production, this would integrate with CRM system
-        customer_database = {
-            # VIP Customers
-            "CUST-VIP-0001": {
-                "customer_name": "John McClane",
-                "is_vip": True,
-                "tier": "Gold",
-                "lifetime_value": 15000,
-                "years_active": 5,
-                "member_since": "2021-01-15"
-            },
-            "CUST-VIP-9921": {
-                "customer_name": "Sarah Connor",
-                "is_vip": True,
-                "tier": "Platinum",
-                "lifetime_value": 50000,
-                "years_active": 10,
-                "member_since": "2016-03-20"
-            },
-            "CUST-VIP-0222": {
-                "customer_name": "Ethan Hunt",
-                "is_vip": True,
-                "tier": "Silver",
-                "lifetime_value": 8000,
-                "years_active": 3,
-                "member_since": "2023-05-10"
-            },
-            "CUST-VIP-0444": {
-                "customer_name": "Lara Croft",
-                "is_vip": True,
-                "tier": "Gold",
-                "lifetime_value": 12000,
-                "years_active": 4,
-                "member_since": "2022-07-01"
-            },
-            # Regular Customers
-            "CUST-REG-0456": {
-                "customer_name": "Jason Bourne",
-                "is_vip": False,
-                "years_active": 2,
-                "member_since": "2024-02-14"
-            },
-            "CUST-REG-0999": {
-                "customer_name": "Neo Anderson",
-                "is_vip": False,
-                "years_active": 0.5,  # 6 months
-                "member_since": "2025-07-01"
-            },
-            "CUST-REG-0888": {
-                "customer_name": "Jack Ryan",
-                "is_vip": False,
-                "years_active": 3,
-                "member_since": "2023-01-20"
-            },
-            "CUST-REG-0555": {
-                "customer_name": "Trinity",
-                "is_vip": False,
-                "years_active": 1.5,
-                "member_since": "2024-07-15"
-            },
-            "CUST-REG-0111": {
-                "customer_name": "James Bond",
-                "is_vip": False,
-                "years_active": 0.8,  # ~10 months
-                "member_since": "2025-03-10"
-            },
-            "CUST-REG-0333": {
-                "customer_name": "Jack Sparrow",
-                "is_vip": False,
-                "years_active": 6,
-                "member_since": "2020-01-05"
-            }
-        }
-
-        customer_data = customer_database.get(customer_id)
+        # Use customer database loaded from JSON file
+        customer_data = MOCK_CUSTOMERS.get(customer_id)
 
         if customer_data:
             logger.info(
@@ -457,9 +291,9 @@ class EnterpriseServices:
     def record_decision_to_ledger(
         order_id: str,
         agent_decision: str,
-        decision_id: str = None,
-        person_id: str = None,
-        rationale: str = None
+        decision_id: str | None = None,
+        person_id: str | None = None,
+        rationale: str | None = None
     ) -> dict:
         """
         Record agent's final decision to audit log.

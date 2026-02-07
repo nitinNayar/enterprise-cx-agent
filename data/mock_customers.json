@@ -1,0 +1,76 @@
+{
+  "_comment": "Customer database with VIP and regular customers. Source of truth for all customer data.",
+  "_last_updated": "2026-01-18",
+  "customers": {
+    "CUST-VIP-0001": {
+      "customer_name": "John McClane",
+      "is_vip": true,
+      "tier": "Gold",
+      "lifetime_value": 15000,
+      "years_active": 5,
+      "member_since": "2021-01-15"
+    },
+    "CUST-VIP-9921": {
+      "customer_name": "Sarah Connor",
+      "is_vip": true,
+      "tier": "Platinum",
+      "lifetime_value": 50000,
+      "years_active": 10,
+      "member_since": "2016-03-20"
+    },
+    "CUST-VIP-0222": {
+      "customer_name": "Ethan Hunt",
+      "is_vip": true,
+      "tier": "Silver",
+      "lifetime_value": 8000,
+      "years_active": 3,
+      "member_since": "2023-05-10"
+    },
+    "CUST-VIP-0444": {
+      "customer_name": "Lara Croft",
+      "is_vip": true,
+      "tier": "Gold",
+      "lifetime_value": 12000,
+      "years_active": 4,
+      "member_since": "2022-07-01"
+    },
+    "CUST-REG-0456": {
+      "customer_name": "Jason Bourne",
+      "is_vip": false,
+      "years_active": 2,
+      "member_since": "2024-02-14"
+    },
+    "CUST-REG-0999": {
+      "customer_name": "Neo Anderson",
+      "is_vip": false,
+      "years_active": 0.5,
+      "member_since": "2025-07-01"
+    },
+    "CUST-REG-0888": {
+      "customer_name": "Jack Ryan",
+      "is_vip": false,
+      "years_active": 3,
+      "member_since": "2023-01-20"
+    },
+    "CUST-VIP-0555": {
+      "customer_name": "Trinity",
+      "is_vip": true,
+      "tier": "Silver",
+      "lifetime_value": 5500,
+      "years_active": 1.5,
+      "member_since": "2024-07-15"
+    },
+    "CUST-REG-0111": {
+      "customer_name": "James Bond",
+      "is_vip": false,
+      "years_active": 0.8,
+      "member_since": "2025-03-10"
+    },
+    "CUST-REG-0333": {
+      "customer_name": "Jack Sparrow",
+      "is_vip": false,
+      "years_active": 6,
+      "member_since": "2020-01-05"
+    }
+  }
+}
