@@ -1,0 +1,66 @@
+From: Jennifer Park <jennifer.park@bookly.com>
+To: Escalation Team <escalations@bookly.com>
+Subject: RE: ESC-2024-003 - Book Club VIP - Downloaded Audiobook Return
+Date: February 5, 2024 3:45 PM
+
+Escalation Details:
+-------------------
+
+From: AI Support Agent
+Date: February 5, 2024 2:15 PM
+Case: ESC-2024-003
+
+Customer: Ethan Hunt (Customer ID: CUST-VIP-0222)
+Order: ORD-222
+Item: "Master of Disguise: A Spy's Memoir" (Audiobook download - $29.99)
+Issue: Customer wants to return DOWNLOADED audiobook (typically non-returnable digital good)
+
+Policy Check: DENY - Downloaded audiobooks are non-returnable per standard policy
+Customer Context:
+- Book Club Silver member: $8,000 lifetime value
+- 3-year customer history
+- Previous purchases: 89 books, 2 returns (both valid, unread books)
+- Frequent audiobook purchaser (47 audiobooks in 3 years)
+Customer Statement: "I downloaded this audiobook but only listened to the first 2 chapters
+before realizing the narrator's voice makes it impossible for me to focus. I'm a Book Club
+member and buy tons of audiobooks from you. Could you make an exception this one time?"
+
+Requesting manager review.
+
+---
+
+From: Jennifer Park <jennifer.park@bookly.com>
+Date: February 5, 2024 3:45 PM
+
+DECISION: APPROVED
+
+After reviewing this case, I'm approving the audiobook return despite the downloaded status.
+
+JUSTIFICATION:
+1. Customer is Book Club Silver member with strong loyalty ($8k lifetime value)
+2. Exceptional audiobook purchase history (47 audiobooks = trusted customer)
+3. Near-perfect return history (2 returns out of 89 books = <3% return rate)
+4. Legitimate use case (narrator compatibility is a real audiobook issue)
+5. Customer explicitly acknowledges this as exceptional request
+6. Early detection (only 2 chapters listened, approximately 10% of content)
+
+CONDITIONS:
+- This is a ONE-TIME exception
+- Customer must be informed this courtesy is due to their Book Club membership and loyalty
+- Limited to one digital product return per customer per year
+- Only applies to Book Club members with $5k+ lifetime value
+- Customer must report within 7 days of download (not applicable to older downloads)
+- Applies only if less than 20% of audiobook consumed
+
+REASONING FOR PRECEDENT:
+Book Club members with demonstrated loyalty and high audiobook purchase volume deserve
+exceptional service on rare occasions. Narrator compatibility is a legitimate audiobook
+concern that can't be assessed before purchase. This exception strengthens customer
+lifetime value and reinforces Book Club membership benefits.
+
+Please process the refund and update customer notes with this decision.
+
+---
+Jennifer Park
+Director of Customer Experience
+Bookly

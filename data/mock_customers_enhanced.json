@@ -1,0 +1,712 @@
+{
+  "_comment": "Enhanced customer database for Bookly with recommendation-relevant data",
+  "_last_updated": "2026-02-07",
+  "_schema_version": "2.0",
+  "customers": {
+    "CUST-VIP-0001": {
+      "customer_name": "John McClane",
+      "is_vip": true,
+      "tier": "Gold",
+      "lifetime_value": 15000,
+      "years_active": 5,
+      "member_since": "2021-01-15",
+
+      "demographics": {
+        "age_range": "50-59",
+        "location": "New York, NY",
+        "occupation": "Law Enforcement"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Action Thrillers", "Detective Fiction", "Police Procedurals", "Crime"],
+        "favorite_authors": ["Lee Child", "Michael Connelly", "James Patterson", "David Baldacci"],
+        "preferred_formats": ["Hardcover", "Paperback"],
+        "reading_pace": "2-3 books/month",
+        "preferred_length": "Standard novels (300-400 pages)"
+      },
+
+      "likes": [
+        "Fast-paced action",
+        "Realistic police work",
+        "Strong protagonists",
+        "Series with recurring characters",
+        "New York-based settings"
+      ],
+
+      "dislikes": [
+        "Romance subplots",
+        "Slow-paced literary fiction",
+        "Supernatural elements",
+        "Overly complex plots"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Killing Floor",
+          "author": "Lee Child",
+          "genre": "Thriller",
+          "purchase_date": "2025-01-15",
+          "rating": 5
+        },
+        {
+          "title": "The Black Echo",
+          "author": "Michael Connelly",
+          "genre": "Detective",
+          "purchase_date": "2025-02-20",
+          "rating": 5
+        },
+        {
+          "title": "The Lincoln Lawyer",
+          "author": "Michael Connelly",
+          "genre": "Legal Thriller",
+          "purchase_date": "2025-03-10",
+          "rating": 4
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Jack Reacher", "Harry Bosch"],
+        "content_preferences": "Action-heavy, minimal romance, realistic violence",
+        "discovery_openness": "Low - prefers established authors",
+        "price_sensitivity": "Medium",
+        "gift_buyer": false
+      }
+    },
+
+    "CUST-VIP-9921": {
+      "customer_name": "Sarah Connor",
+      "is_vip": true,
+      "tier": "Platinum",
+      "lifetime_value": 50000,
+      "years_active": 10,
+      "member_since": "2016-03-20",
+
+      "demographics": {
+        "age_range": "50-59",
+        "location": "Los Angeles, CA",
+        "occupation": "Security Consultant"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Science Fiction", "Dystopian", "Military Sci-Fi", "Post-Apocalyptic"],
+        "favorite_authors": ["Isaac Asimov", "Philip K. Dick", "Ursula K. Le Guin", "William Gibson", "John Scalzi"],
+        "preferred_formats": ["Hardcover", "Signed Editions", "First Editions"],
+        "reading_pace": "4-5 books/month",
+        "preferred_length": "Any length, prefers series"
+      },
+
+      "likes": [
+        "Classic science fiction",
+        "Time travel paradoxes",
+        "AI and robot themes",
+        "Dystopian futures",
+        "Strong female protagonists",
+        "Collectible editions",
+        "Signed copies"
+      ],
+
+      "dislikes": [
+        "Space opera (too fantastical)",
+        "Hard romance in sci-fi",
+        "Overly technical hard sci-fi"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Foundation",
+          "author": "Isaac Asimov",
+          "genre": "Science Fiction",
+          "purchase_date": "2024-01-10",
+          "rating": 5,
+          "edition": "Signed First Edition"
+        },
+        {
+          "title": "Do Androids Dream of Electric Sheep?",
+          "author": "Philip K. Dick",
+          "genre": "Science Fiction",
+          "purchase_date": "2024-03-15",
+          "rating": 5
+        },
+        {
+          "title": "The Left Hand of Darkness",
+          "author": "Ursula K. Le Guin",
+          "genre": "Science Fiction",
+          "purchase_date": "2024-05-20",
+          "rating": 5
+        },
+        {
+          "title": "Neuromancer",
+          "author": "William Gibson",
+          "genre": "Cyberpunk",
+          "purchase_date": "2024-08-12",
+          "rating": 4
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Foundation", "Robot Series", "Old Man's War"],
+        "content_preferences": "Thought-provoking, philosophical, no explicit content",
+        "discovery_openness": "High - loves discovering new authors",
+        "price_sensitivity": "Low - will pay premium for signed/first editions",
+        "gift_buyer": true,
+        "collector": true,
+        "wishlist": ["Signed Asimov collection", "First edition Le Guin"]
+      }
+    },
+
+    "CUST-VIP-0222": {
+      "customer_name": "Ethan Hunt",
+      "is_vip": true,
+      "tier": "Silver",
+      "lifetime_value": 8000,
+      "years_active": 3,
+      "member_since": "2023-05-10",
+
+      "demographics": {
+        "age_range": "40-49",
+        "location": "Washington, DC",
+        "occupation": "Government Contractor"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Spy Thrillers", "Espionage", "Action", "Political Thrillers"],
+        "favorite_authors": ["Tom Clancy", "Daniel Silva", "Vince Flynn", "Brad Thor"],
+        "preferred_formats": ["Audiobook (85%)", "E-book (15%)"],
+        "reading_pace": "6-8 audiobooks/month",
+        "preferred_length": "Any length - consumes during workouts/commute",
+        "listening_speed": "1.5x"
+      },
+
+      "likes": [
+        "Espionage tradecraft",
+        "International settings",
+        "Realistic spy operations",
+        "Fast narration (quality narrator is critical)",
+        "Series with continuity"
+      ],
+
+      "dislikes": [
+        "Slow narrators",
+        "Monotone voice acting",
+        "Too much technical jargon",
+        "Romance-heavy plots"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Red Rabbit",
+          "author": "Tom Clancy",
+          "genre": "Spy Thriller",
+          "format": "Audiobook",
+          "purchase_date": "2025-01-05",
+          "rating": 5,
+          "narrator": "Scott Brick"
+        },
+        {
+          "title": "The Kill Artist",
+          "author": "Daniel Silva",
+          "genre": "Spy Thriller",
+          "format": "Audiobook",
+          "purchase_date": "2025-01-20",
+          "rating": 4,
+          "narrator": "Phil Gigante"
+        },
+        {
+          "title": "Term Limits",
+          "author": "Vince Flynn",
+          "genre": "Political Thriller",
+          "format": "Audiobook",
+          "purchase_date": "2025-02-01",
+          "rating": 5,
+          "narrator": "Armand Schultz"
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Jack Ryan", "Gabriel Allon", "Mitch Rapp"],
+        "content_preferences": "Action-packed, realistic, narrator quality critical",
+        "discovery_openness": "Medium - will try new authors if narrator is good",
+        "price_sensitivity": "Low for audiobooks",
+        "narrator_preferences": ["Scott Brick", "George Guidall", "Phil Gigante"],
+        "narrator_avoidance": ["Monotone narrators", "Heavy accents"]
+      }
+    },
+
+    "CUST-VIP-0444": {
+      "customer_name": "Lara Croft",
+      "is_vip": true,
+      "tier": "Gold",
+      "lifetime_value": 12000,
+      "years_active": 4,
+      "member_since": "2022-07-01",
+
+      "demographics": {
+        "age_range": "30-39",
+        "location": "London, UK",
+        "occupation": "Archaeologist"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Archaeology", "Ancient History", "Adventure", "Historical Fiction", "Travel Memoirs"],
+        "favorite_authors": ["Madeline Miller", "Mary Beard", "Graham Hancock", "Dan Brown", "Clive Cussler"],
+        "preferred_formats": ["Hardcover", "Rare/Collectible editions"],
+        "reading_pace": "3-4 books/month",
+        "preferred_length": "Comprehensive works (400+ pages)"
+      },
+
+      "likes": [
+        "Lost civilizations",
+        "Archaeological mysteries",
+        "Ancient mythology",
+        "Expedition narratives",
+        "Historical accuracy",
+        "Illustrated editions",
+        "Academic rigor"
+      ],
+
+      "dislikes": [
+        "Pseudo-archaeology",
+        "Overly dramatized history",
+        "Inaccurate historical settings",
+        "Pure fantasy with no historical basis"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Circe",
+          "author": "Madeline Miller",
+          "genre": "Historical Fiction",
+          "purchase_date": "2024-06-15",
+          "rating": 5
+        },
+        {
+          "title": "SPQR: A History of Ancient Rome",
+          "author": "Mary Beard",
+          "genre": "Ancient History",
+          "purchase_date": "2024-08-20",
+          "rating": 5
+        },
+        {
+          "title": "Fingerprints of the Gods",
+          "author": "Graham Hancock",
+          "genre": "Alternative History",
+          "purchase_date": "2024-10-10",
+          "rating": 4
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Dirk Pitt Adventures"],
+        "content_preferences": "Educational with adventure, accurate history",
+        "discovery_openness": "High - actively seeks rare books",
+        "price_sensitivity": "Low - collects rare/out-of-print editions",
+        "collector": true,
+        "special_interests": ["Mayan civilization", "Egyptian archaeology", "Maritime history"],
+        "wishlist": ["First edition archaeology journals", "Explorer memoirs"]
+      }
+    },
+
+    "CUST-VIP-0555": {
+      "customer_name": "Trinity",
+      "is_vip": true,
+      "tier": "Silver",
+      "lifetime_value": 5500,
+      "years_active": 1.5,
+      "member_since": "2024-07-15",
+
+      "demographics": {
+        "age_range": "30-39",
+        "location": "San Francisco, CA",
+        "occupation": "Software Engineer"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Cyberpunk", "Philosophy", "Tech Thrillers", "Speculative Fiction", "Transhumanism"],
+        "favorite_authors": ["William Gibson", "Neal Stephenson", "Philip K. Dick", "Cory Doctorow"],
+        "preferred_formats": ["E-book (60%)", "Paperback (40%)"],
+        "reading_pace": "4-5 books/month",
+        "preferred_length": "Any length"
+      },
+
+      "likes": [
+        "Cyberpunk aesthetics",
+        "AI and consciousness themes",
+        "Virtual reality concepts",
+        "Philosophical depth",
+        "Tech speculation",
+        "Female protagonists in tech",
+        "Hacker culture"
+      ],
+
+      "dislikes": [
+        "Technophobic narratives",
+        "Dated tech predictions",
+        "Lack of philosophical depth"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Snow Crash",
+          "author": "Neal Stephenson",
+          "genre": "Cyberpunk",
+          "purchase_date": "2024-08-01",
+          "rating": 5
+        },
+        {
+          "title": "Ready Player Two",
+          "author": "Ernest Cline",
+          "genre": "Science Fiction",
+          "purchase_date": "2024-09-15",
+          "rating": 3
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Sprawl Trilogy"],
+        "content_preferences": "Philosophical, tech-forward, strong female characters",
+        "discovery_openness": "Very high - loves indie sci-fi authors",
+        "price_sensitivity": "Medium",
+        "book_club_participant": true
+      }
+    },
+
+    "CUST-REG-0456": {
+      "customer_name": "Jason Bourne",
+      "is_vip": false,
+      "years_active": 2,
+      "member_since": "2024-02-14",
+
+      "demographics": {
+        "age_range": "40-49",
+        "location": "Paris, France"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Spy Thrillers", "Psychological Thrillers", "Mystery"],
+        "favorite_authors": ["Robert Ludlum", "John le Carré"],
+        "preferred_formats": ["Paperback"],
+        "reading_pace": "1-2 books/month",
+        "preferred_length": "Standard novels"
+      },
+
+      "likes": [
+        "Complex protagonists",
+        "Identity themes",
+        "International intrigue",
+        "Realistic espionage"
+      ],
+
+      "dislikes": [
+        "Superhero-like protagonists",
+        "Unrealistic action"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "The Bourne Supremacy",
+          "author": "Robert Ludlum",
+          "genre": "Thriller",
+          "purchase_date": "2024-12-01",
+          "rating": 5
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Bourne"],
+        "content_preferences": "Gritty, realistic",
+        "discovery_openness": "Low - sticks to known authors",
+        "price_sensitivity": "High"
+      }
+    },
+
+    "CUST-REG-0999": {
+      "customer_name": "Neo Anderson",
+      "is_vip": false,
+      "years_active": 0.5,
+      "member_since": "2025-07-01",
+
+      "demographics": {
+        "age_range": "30-39",
+        "location": "Portland, OR",
+        "occupation": "Software Developer"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Philosophy", "Science Fiction", "Technology"],
+        "favorite_authors": ["Philip K. Dick"],
+        "preferred_formats": ["E-book", "Paperback"],
+        "reading_pace": "2 books/month"
+      },
+
+      "likes": [
+        "Simulation theory",
+        "Reality questioning",
+        "Philosophical sci-fi"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "The Matrix and Philosophy",
+          "author": "William Irwin (Editor)",
+          "genre": "Philosophy",
+          "purchase_date": "2026-01-15",
+          "rating": null
+        }
+      ],
+
+      "recommendation_profile": {
+        "discovery_openness": "High - new reader exploring",
+        "price_sensitivity": "Medium"
+      }
+    },
+
+    "CUST-REG-0888": {
+      "customer_name": "Jack Ryan",
+      "is_vip": false,
+      "years_active": 3,
+      "member_since": "2023-01-20",
+
+      "demographics": {
+        "age_range": "40-49",
+        "location": "Baltimore, MD",
+        "occupation": "Analyst"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Political Thrillers", "Military History", "Intelligence Analysis"],
+        "favorite_authors": ["Tom Clancy", "Stephen Coonts", "Dale Brown"],
+        "preferred_formats": ["Hardcover"],
+        "reading_pace": "2-3 books/month",
+        "preferred_length": "Epic novels (500+ pages)"
+      },
+
+      "likes": [
+        "Detailed military operations",
+        "Geopolitical accuracy",
+        "Technical details",
+        "Cold War era",
+        "Naval warfare"
+      ],
+
+      "dislikes": [
+        "Simplified tactics",
+        "Inaccurate military details"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "The Hunt for Red October",
+          "author": "Tom Clancy",
+          "genre": "Thriller",
+          "purchase_date": "2024-11-10",
+          "rating": 5
+        },
+        {
+          "title": "Patriot Games",
+          "author": "Tom Clancy",
+          "genre": "Thriller",
+          "purchase_date": "2025-01-05",
+          "rating": 5
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Jack Ryan Universe"],
+        "content_preferences": "Technical depth, realistic",
+        "discovery_openness": "Low - Clancy devotee",
+        "price_sensitivity": "Medium"
+      }
+    },
+
+    "CUST-REG-0111": {
+      "customer_name": "James Bond",
+      "is_vip": false,
+      "years_active": 0.8,
+      "member_since": "2025-03-10",
+
+      "demographics": {
+        "age_range": "50-59",
+        "location": "London, UK"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Classic Spy Fiction", "Adventure"],
+        "favorite_authors": ["Ian Fleming", "John le Carré"],
+        "preferred_formats": ["Hardcover"],
+        "reading_pace": "1-2 books/month"
+      },
+
+      "likes": [
+        "Classic spy novels",
+        "British settings",
+        "Sophisticated protagonists",
+        "International locations"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Casino Royale",
+          "author": "Ian Fleming",
+          "genre": "Spy Fiction",
+          "purchase_date": "2025-11-01",
+          "rating": 5
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["James Bond"],
+        "discovery_openness": "Low - traditional tastes",
+        "price_sensitivity": "Low"
+      }
+    },
+
+    "CUST-REG-0333": {
+      "customer_name": "Jack Sparrow",
+      "is_vip": false,
+      "years_active": 6,
+      "member_since": "2020-01-05",
+
+      "demographics": {
+        "age_range": "40-49",
+        "location": "Caribbean"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Maritime History", "Pirate History", "Adventure", "Historical Fiction"],
+        "favorite_authors": ["Patrick O'Brian", "C.S. Forester", "Tim Powers"],
+        "preferred_formats": ["Paperback (weathered)"],
+        "reading_pace": "2 books/month"
+      },
+
+      "likes": [
+        "Golden Age of Piracy",
+        "Naval adventure",
+        "Treasure hunting",
+        "Caribbean history",
+        "Rum cocktails (cookbooks)"
+      ],
+
+      "dislikes": [
+        "Too serious non-fiction",
+        "Romanticized pirates"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Master and Commander",
+          "author": "Patrick O'Brian",
+          "genre": "Historical Fiction",
+          "purchase_date": "2024-05-15",
+          "rating": 5
+        },
+        {
+          "title": "On Stranger Tides",
+          "author": "Tim Powers",
+          "genre": "Fantasy",
+          "purchase_date": "2024-08-20",
+          "rating": 4
+        }
+      ],
+
+      "recommendation_profile": {
+        "series_following": ["Aubrey-Maturin"],
+        "content_preferences": "Adventure, humor, historical accuracy",
+        "discovery_openness": "Medium",
+        "price_sensitivity": "High"
+      }
+    },
+
+    "CUST-REG-0666": {
+      "customer_name": "Indiana Jones",
+      "is_vip": false,
+      "years_active": 4,
+      "member_since": "2022-03-15",
+
+      "demographics": {
+        "age_range": "50-59",
+        "location": "Connecticut",
+        "occupation": "Professor of Archaeology"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Archaeology", "Ancient Civilizations", "History", "Adventure"],
+        "favorite_authors": ["Mary Beard", "Jared Diamond", "Bruce Trigger"],
+        "preferred_formats": ["Hardcover (academic)", "Used/Rare books"],
+        "reading_pace": "3-4 books/month"
+      },
+
+      "likes": [
+        "Academic archaeology",
+        "Ancient civilizations",
+        "Field archaeology",
+        "Religious history",
+        "Artifact studies"
+      ],
+
+      "dislikes": [
+        "Pseudo-archaeology",
+        "Alien theories"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "Guns, Germs, and Steel",
+          "author": "Jared Diamond",
+          "genre": "History",
+          "purchase_date": "2024-09-10",
+          "rating": 5
+        }
+      ],
+
+      "recommendation_profile": {
+        "content_preferences": "Academic rigor required",
+        "discovery_openness": "Medium",
+        "price_sensitivity": "Medium",
+        "special_interests": ["Biblical archaeology", "Pre-Columbian civilizations"]
+      }
+    },
+
+    "CUST-REG-1001": {
+      "customer_name": "Maximus Decimus",
+      "is_vip": false,
+      "years_active": 1,
+      "member_since": "2025-01-10",
+
+      "demographics": {
+        "age_range": "40-49",
+        "location": "Rome, Italy"
+      },
+
+      "reading_preferences": {
+        "favorite_genres": ["Roman History", "Military Strategy", "Ancient Warfare", "Classical Literature"],
+        "favorite_authors": ["Adrian Goldsworthy", "Plutarch", "Mary Beard"],
+        "preferred_formats": ["E-book", "Hardcover"],
+        "reading_pace": "2-3 books/month"
+      },
+
+      "likes": [
+        "Roman military tactics",
+        "Gladiator history",
+        "Ancient Rome politics",
+        "Military leadership",
+        "Classical texts"
+      ],
+
+      "purchase_history": [
+        {
+          "title": "The Art of War",
+          "author": "Sun Tzu",
+          "genre": "Military Strategy",
+          "purchase_date": "2025-12-20",
+          "rating": null
+        }
+      ],
+
+      "recommendation_profile": {
+        "content_preferences": "Historical accuracy, military focus",
+        "discovery_openness": "Medium",
+        "price_sensitivity": "Medium"
+      }
+    }
+  }
+}
