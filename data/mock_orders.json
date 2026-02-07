@@ -1,0 +1,87 @@
+{
+  "_comment": "Mock order database for testing. Keys are order IDs.",
+  "_last_updated": "2026-01-18",
+  "orders": {
+    "ORD-123": {
+      "status": "shipped",
+      "items": ["Tactical duct tape multi-pack (For HVAC emergencies)"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-VIP-0001",
+      "customer_name": "John McClane"
+    },
+    "ORD-456": {
+      "status": "delivered",
+      "items": ["Prepaid burner phones (12 pack)"],
+      "eligible_for_return": false,
+      "return_reason": "window_expired",
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-REG-0456",
+      "customer_name": "Jason Bourne"
+    },
+    "ORD-999": {
+      "status": "processing",
+      "items": ["Black trench coat"],
+      "eligible_for_return": true,
+      "customer_sentiment": "angry",
+      "customer_id": "CUST-REG-0999",
+      "customer_name": "Neo Anderson"
+    },
+    "ORD-777": {
+      "status": "delivered",
+      "items": ["Military-grade survival knife set"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-VIP-9921",
+      "customer_name": "Sarah Connor"
+    },
+    "ORD-888": {
+      "status": "delivered",
+      "items": ["CIA analyst desk organizer"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-REG-0888",
+      "customer_name": "Jack Ryan"
+    },
+    "ORD-555": {
+      "status": "delivered",
+      "items": ["Black leather motorcycle jacket"],
+      "eligible_for_return": true,
+      "customer_sentiment": "positive",
+      "customer_id": "CUST-VIP-0555",
+      "customer_name": "Trinity"
+    },
+    "ORD-111": {
+      "status": "delivered",
+      "items": ["Martini shaker set (shaken, not stirred)"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-REG-0111",
+      "customer_name": "James Bond"
+    },
+    "ORD-222": {
+      "status": "delivered",
+      "items": ["Custom face mask prosthetics kit"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-VIP-0222",
+      "customer_name": "Ethan Hunt"
+    },
+    "ORD-333": {
+      "status": "delivered",
+      "items": ["Eyeliner and kohl pencil set"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-REG-0333",
+      "customer_name": "Jack Sparrow"
+    },
+    "ORD-444": {
+      "status": "delivered",
+      "items": ["Archaeological excavation tools"],
+      "eligible_for_return": true,
+      "customer_sentiment": "positive",
+      "customer_id": "CUST-VIP-0444",
+      "customer_name": "Lara Croft"
+    }
+  }
+}

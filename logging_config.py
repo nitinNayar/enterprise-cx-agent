@@ -1,3 +1,6 @@
+from typing import Any
+from pathlib import Path
+
 """
 Centralized logging configuration for Decision Ledger feature.
 
@@ -33,11 +36,11 @@ from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
 # Logging directories
-LOG_DIR = Path(__file__).parent / "logs"
+LOG_DIR: Path = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
-AUDIT_LOG_FILE = LOG_DIR / "decision_audit.log"
-CONSOLE_LOG_FILE = LOG_DIR / "console.log"
+AUDIT_LOG_FILE: Path = LOG_DIR / "decision_audit.log"
+CONSOLE_LOG_FILE: Path = LOG_DIR / "console.log"
 
 
 class DecisionAuditFormatter(logging.Formatter):
@@ -48,7 +51,7 @@ class DecisionAuditFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # Base structure
-        log_entry = {
+        log_entry: dict[str, Any] = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "level": record.levelname,
             "logger": record.name,

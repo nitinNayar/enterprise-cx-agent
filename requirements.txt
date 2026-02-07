@@ -1,6 +1,7 @@
 anthropic
 chainlit
 python-dotenv
+mypy
 
 # simplified graph db
 kuzu

@@ -1,4 +1,6 @@
-tools_schema = [
+from typing import Any
+
+tools_schema: list[dict[str, Any]] = [
     {
         "name": "look_up_order",
         "description": "Fetch order details. This is the MANDATORY first step for any order query. You can NOT skip this",
