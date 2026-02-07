@@ -1,10 +1,10 @@
 {
-  "_comment": "Mock order database for testing. Keys are order IDs.",
-  "_last_updated": "2026-01-18",
+  "_comment": "Mock order database for Bookly online bookstore. Keys are order IDs.",
+  "_last_updated": "2026-02-07",
   "orders": {
     "ORD-123": {
       "status": "shipped",
-      "items": ["Tactical duct tape multi-pack (For HVAC emergencies)"],
+      "items": ["\"Die Hard: The Official Movie Novelization\" (Hardcover)"],
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-0001",
@@ -12,40 +12,44 @@
     },
     "ORD-456": {
       "status": "delivered",
-      "items": ["Prepaid burner phones (12 pack)"],
+      "items": ["\"The Bourne Identity\" by Robert Ludlum (Paperback)"],
       "eligible_for_return": false,
       "return_reason": "window_expired",
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0456",
-      "customer_name": "Jason Bourne"
+      "customer_name": "Jason Bourne",
+      "notes": "Delivered 45 days ago, outside 30-day return window"
     },
     "ORD-999": {
       "status": "processing",
-      "items": ["Black trench coat"],
+      "items": ["\"The Matrix and Philosophy\" (Paperback)", "Premium leather bookmark"],
       "eligible_for_return": true,
       "customer_sentiment": "angry",
       "customer_id": "CUST-REG-0999",
-      "customer_name": "Neo Anderson"
+      "customer_name": "Neo Anderson",
+      "notes": "Customer is frustrated about delayed shipment"
     },
     "ORD-777": {
       "status": "delivered",
-      "items": ["Military-grade survival knife set"],
+      "items": ["\"The Terminator Files: Technical Manual\" (Hardcover, Signed Edition)"],
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-9921",
-      "customer_name": "Sarah Connor"
+      "customer_name": "Sarah Connor",
+      "notes": "Signed limited edition, customer opened and read first chapter"
     },
     "ORD-888": {
       "status": "delivered",
-      "items": ["CIA analyst desk organizer"],
+      "items": ["\"Complete Sherlock Holmes Collection\" (Leather-bound gift set)"],
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0888",
-      "customer_name": "Jack Ryan"
+      "customer_name": "Jack Ryan",
+      "notes": "Holiday gift purchased in December, now 39 days since purchase"
     },
     "ORD-555": {
       "status": "delivered",
-      "items": ["Black leather motorcycle jacket"],
+      "items": ["\"Neuromancer\" by William Gibson (First Edition, Paperback)"],
       "eligible_for_return": true,
       "customer_sentiment": "positive",
       "customer_id": "CUST-VIP-0555",
@@ -53,7 +57,7 @@
     },
     "ORD-111": {
       "status": "delivered",
-      "items": ["Martini shaker set (shaken, not stirred)"],
+      "items": ["\"Casino Royale\" by Ian Fleming (Deluxe Edition, Hardcover)"],
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0111",
@@ -61,27 +65,83 @@
     },
     "ORD-222": {
       "status": "delivered",
-      "items": ["Custom face mask prosthetics kit"],
+      "items": ["\"Master of Disguise: A Spy's Memoir\" (Audiobook download)"],
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-0222",
-      "customer_name": "Ethan Hunt"
+      "customer_name": "Ethan Hunt",
+      "notes": "Customer downloaded and listened to 2 chapters, audiobooks typically non-returnable"
     },
     "ORD-333": {
       "status": "delivered",
-      "items": ["Eyeliner and kohl pencil set"],
+      "items": ["\"Pirates of the Caribbean: The Complete Visual Guide\" (Hardcover)"],
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0333",
-      "customer_name": "Jack Sparrow"
+      "customer_name": "Jack Sparrow",
+      "notes": "Customer spilled rum on the book, pages damaged"
     },
     "ORD-444": {
       "status": "delivered",
-      "items": ["Archaeological excavation tools"],
+      "items": ["\"Archaeology for Dummies\" (Paperback)", "\"Lost Civilizations Atlas\" (Hardcover)"],
       "eligible_for_return": true,
       "customer_sentiment": "positive",
       "customer_id": "CUST-VIP-0444",
       "customer_name": "Lara Croft"
+    },
+    "ORD-666": {
+      "status": "delivered",
+      "items": ["Bookly $50 Gift Card (Digital)"],
+      "eligible_for_return": false,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-REG-0666",
+      "customer_name": "Indiana Jones",
+      "notes": "Digital gift card, non-returnable per policy"
+    },
+    "ORD-1001": {
+      "status": "delivered",
+      "items": ["\"The Art of War\" by Sun Tzu (E-book download)"],
+      "eligible_for_return": false,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-REG-1001",
+      "customer_name": "Maximus Decimus",
+      "notes": "E-book downloaded, digital goods non-returnable"
+    },
+    "ORD-1234": {
+      "status": "delivered",
+      "items": ["\"Mission Impossible: The Complete Scripts\" (Limited Edition Box Set, Personalized with inscription)"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-VIP-0222",
+      "customer_name": "Ethan Hunt",
+      "notes": "Personalized inscription requested at purchase: 'To Ethan, may your missions be possible'"
+    },
+    "ORD-2001": {
+      "status": "processing",
+      "items": ["Bookly Book Club Monthly Box (February 2026 - Spy Thriller Collection)"],
+      "eligible_for_return": false,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-REG-0111",
+      "customer_name": "James Bond",
+      "notes": "Subscription box being prepared, contains 3 curated spy thriller books + exclusive bookmark. Ships within 2-3 business days. Customer may want to cancel before shipment or ask about contents."
+    },
+    "ORD-2002": {
+      "status": "shipped",
+      "items": ["\"The Simulation Hypothesis: An MIT Scientist's Guide\" by Dr. Sarah Vance (Pre-ordered Hardcover, New Release)"],
+      "eligible_for_return": true,
+      "customer_sentiment": "positive",
+      "customer_id": "CUST-VIP-0555",
+      "customer_name": "Trinity",
+      "notes": "Pre-ordered book released today, shipped this morning. Customer has been eagerly waiting. Estimated delivery: 2-3 days. Tracking number available. Customer may ask for tracking or delivery estimate."
+    },
+    "ORD-2003": {
+      "status": "processing",
+      "items": ["\"Lost Cities of the Amazon: A 1925 Expedition Journal\" by Colonel Percy Fawcett (Rare, Out-of-Print Edition)"],
+      "eligible_for_return": true,
+      "customer_sentiment": "neutral",
+      "customer_id": "CUST-VIP-0444",
+      "customer_name": "Lara Croft",
+      "notes": "Special order - rare book being sourced from third-party seller. Estimated to ship in 7-10 business days. Customer is a collector and understands longer wait times. May inquire about order status or request cancellation if taking too long."
     }
   }
 }

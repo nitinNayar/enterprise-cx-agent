@@ -1,0 +1,58 @@
+From: Sarah Chen <sarah.chen@bookly.com>
+To: Support Team <support@bookly.com>
+Subject: RE: Escalation ESC-2024-001 - VIP Customer Return Request
+Date: December 15, 2024 2:30 PM
+
+Thread Summary:
+--------------
+
+From: AI Agent <ai-support@bookly.com>
+Date: December 15, 2024 1:00 PM
+
+Escalating case ESC-2024-001 to human review.
+
+Customer: Sarah Connor (Customer ID: CUST-VIP-9921)
+Order: ORD-777
+Item: "The Terminator Files: Technical Manual" (Hardcover, Signed Edition - $125)
+Issue: Customer requesting return of read book (opened and read first chapter)
+
+Policy Check: DENY - Customer opened and read the book, which makes it non-returnable
+              Signed editions must be in pristine condition to maintain collectible value
+Customer Context: Book Club Platinum member, 10+ year customer, $50,000 lifetime value
+Customer Message: "I understand the policy on opened books, but I'm a long-time Book Club
+Platinum member and the content wasn't what I expected. I've only read the first chapter.
+Would you please make an exception this one time?"
+
+Awaiting human decision.
+
+---
+
+From: Sarah Chen <sarah.chen@bookly.com>
+Date: December 15, 2024 2:30 PM
+
+DECISION: APPROVED
+
+I'm approving this exception for the following reasons:
+
+1. Customer has been with us for over 10 years with zero prior returns
+2. Lifetime value of $50k+ demonstrates extraordinary loyalty to Bookly
+3. Customer explicitly acknowledged the policy but requested consideration
+4. This is clearly a one-time courtesy gesture
+5. Book is signed/limited edition but only minimally used (one chapter)
+
+CONDITIONS:
+- One-time exception only
+- Not to be used as precedent for all Book Club members
+- Customer should be informed this is a courtesy exception
+- Limited to once per year for read books
+
+Rationale: Book Club Platinum members with demonstrated loyalty and high lifetime value
+should receive exceptional service when circumstances warrant. This builds long-term
+customer relationships and reinforces the value of Book Club membership.
+
+Please process the refund and note this decision in the system.
+
+---
+Sarah Chen
+VP, Customer Experience
+Bookly
