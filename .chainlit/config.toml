@@ -90,7 +90,7 @@ reaction_on_message_received = false
 
 [UI]
 # Name of the assistant.
-name = "TrueCart"
+name = "Bookly"
 
 # Set default theme (light or dark)
 default_theme = "light"
@@ -106,7 +106,7 @@ layout = "wide"
 default_sidebar_state = "open"
 
 # Description of the assistant. This is used for HTML tags.
-description = "TrueCart - Enterprise Customer Experience Agent. Intelligent support powered by advanced AI to resolve your order issues quickly and efficiently."
+description = "Bookly - Your AI-Powered Bookshop Assistant. Get instant help with orders, returns, and general questions about your favorite books."
 
 # Chain of Thought (CoT) display mode. Can be "hidden", "tool_call" or "full".
 cot = "full"
@@ -142,12 +142,12 @@ alert_style = "classic"
 # custom_meta_image_url = "https://chainlit-cloud.s3.eu-west-3.amazonaws.com/logo/chainlit_banner.png"
 
 # Load assistant logo directly from URL.
-# Using the light version for light mode (dark version available at /public/TrueCart_dark.png)
-logo_file_url = "/public/TrueCart_Light.png"
+# Using the light version for light mode (dark version available at /public/Bookly_dark.png)
+logo_file_url = "/public/Bookly_Light.png"
 
 # Load assistant avatar image directly from URL.
 # You can use the same logo or a different avatar image
-default_avatar_file_url = "/public/TrueCart_Light.png"
+default_avatar_file_url = "/public/Bookly_Light.png"
 
 # Specify a custom build directory for the frontend.
 # This can be used to customize the frontend code.

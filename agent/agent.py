@@ -7,6 +7,7 @@ from services.services import EnterpriseServices
 from tools.tools import tools_schema
 from config import Config
 from logging_config import get_session_id, set_session_id
+from prompts import get_prompt_for_category, get_tools_for_category
 
 logger = logging.getLogger("Claude Agent")
 audit_logger = logging.getLogger("DecisionAudit")
@@ -19,11 +20,16 @@ class SupportAgent:
         self.precedent_used = None  # Track if precedent was used in this conversation
     
 
-    def run(self, user_input):
+    def run(self, user_input, category=None):
         """
-        Executes the main agent loop.
+        Executes the main agent loop with optional category-specific optimization.
+
+        Args:
+            user_input: The user's message/question
+            category: Optional QuestionCategory enum for specialized handling
+
         Handles:
-        1. User Input -> Claude
+        1. User Input -> Claude (with category-specific prompt and tools)
         2. Claude -> Tool Call (Loop)
         3. Tool Result -> Claude (Loop)
         4. Claude -> Final Answer (Exit)
@@ -50,17 +56,39 @@ class SupportAgent:
 
         self.messages.append({"role": "user", "content": user_input})
 
+        # --- Category-Specific Configuration ---
+        # Select system prompt and tools based on category (if provided)
+        if category:
+            system_prompt = get_prompt_for_category(category)
+            allowed_tool_names = get_tools_for_category(category)
+
+            # Filter tools based on category
+            if allowed_tool_names:
+                filtered_tools = [
+                    tool for tool in tools_schema
+                    if tool['name'] in allowed_tool_names
+                ]
+                logger.info(f"Using {len(filtered_tools)} tools for category {category.value}")
+            else:
+                filtered_tools = tools_schema  # Use all tools if no filtering
+                logger.info(f"Using all {len(filtered_tools)} tools (no category filtering)")
+        else:
+            # No category provided, use default full configuration
+            system_prompt = Config.SYSTEM_PROMPT
+            filtered_tools = tools_schema
+            logger.info("No category provided, using default configuration")
+
         # --- 2. The "Re-Act" Loop ---
         while True:
-            
-            # Call Claude with current history
+
+            # Call Claude with current history and category-specific configuration
             response = self.client.messages.create(
                 model=Config.MODEL_NAME,
                 max_tokens=Config.MAX_TOKENS,
                 temperature=Config.TEMPERATURE,
-                system=Config.SYSTEM_PROMPT,
+                system=system_prompt,  # <-- Category-specific prompt
                 messages=self.messages,
-                tools=tools_schema
+                tools=filtered_tools  # <-- Category-specific tools
             )
 
             # Debug: See exactly what Claude is thinking/doing
