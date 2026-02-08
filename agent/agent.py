@@ -220,6 +220,24 @@ class SupportAgent:
                                 }
                             )
 
+                    elif tool_name == "get_book_recommendations":
+                        result = EnterpriseServices.get_book_recommendations(
+                            customer_id=tool_input.get("customer_id"),
+                            num_recommendations=tool_input.get("num_recommendations", 3),
+                            context=tool_input.get("context")
+                        )
+
+                        audit_logger.info(
+                            f"Book recommendations generated for customer {tool_input.get('customer_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'customer_id': tool_input.get('customer_id'),
+                                'num_recommendations': len(result.get('recommendations', [])),
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
                     elif tool_name == "execute_order_return":
                         result = EnterpriseServices.execute_refund(tool_input.get("order_id"), tool_input.get("reason"))
 

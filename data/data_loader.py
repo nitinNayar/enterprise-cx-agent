@@ -60,7 +60,7 @@ def load_mock_customers() -> dict[str, Any]:
         >>> print(customer["customer_name"])
         John McClane
     """
-    customers_file = DATA_DIR / "mock_customers.json"
+    customers_file = DATA_DIR / "mock_customers_enhanced.json"
 
     try:
         with open(customers_file, 'r', encoding='utf-8') as f:
@@ -83,6 +83,43 @@ def load_mock_customers() -> dict[str, Any]:
         return {}
 
 
+def load_mock_books() -> dict[str, Any]:
+    """
+    Load mock book catalog from JSON file.
+
+    Returns:
+        dict mapping book_id to book data
+
+    Example:
+        >>> books = load_mock_books()
+        >>> book = books.get("BOOK-001")
+        >>> print(book["title"])
+        Killing Floor
+    """
+    books_file = DATA_DIR / "mock_books_catalog.json"
+
+    try:
+        with open(books_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        books = data.get("books", {})
+        print(f"✅ Loaded {len(books)} mock books from {books_file.name}")
+        return books
+
+    except FileNotFoundError:
+        print(f"⚠️  WARNING: {books_file} not found. Using empty book catalog.")
+        return {}
+
+    except json.JSONDecodeError as e:
+        print(f"❌ ERROR: Invalid JSON in {books_file}: {e}")
+        return {}
+
+    except Exception as e:
+        print(f"❌ ERROR: Failed to load books: {e}")
+        return {}
+
+
 # Load data once at module level (cached for performance)
 MOCK_ORDERS: dict[str, Any] = load_mock_orders()
 MOCK_CUSTOMERS: dict[str, Any] = load_mock_customers()
+MOCK_BOOKS: dict[str, Any] = load_mock_books()

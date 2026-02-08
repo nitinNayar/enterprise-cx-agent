@@ -103,5 +103,28 @@ tools_schema: list[dict[str, Any]] = [
             },
             "required": ["query_tags_str"]
         }
+    },
+
+    {
+        "name": "get_book_recommendations",
+        "description": "Get personalized book recommendations for a customer. Use this when a customer requests a return and you want to offer alternative books they might enjoy instead. IMPORTANT: Call this AFTER gathering return information (order details, customer info) but BEFORE processing the return. This gives customers an attractive alternative that might prevent the return. Only offer recommendations if: 1) Customer is returning a book, 2) Customer tone is neutral or positive (not angry/frustrated), 3) You have gathered necessary return information. Do NOT offer if customer is angry/escalated or explicitly requests speed.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string",
+                    "description": "The customer ID from the order lookup result"
+                },
+                "num_recommendations": {
+                    "type": "integer",
+                    "description": "Number of recommendations to return (default: 3)"
+                },
+                "context": {
+                    "type": "string",
+                    "description": "Optional context about what they're returning (e.g., 'thriller', 'sci-fi') to improve recommendations"
+                }
+            },
+            "required": ["customer_id"]
+        }
     }
 ]

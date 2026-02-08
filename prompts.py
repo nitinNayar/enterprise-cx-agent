@@ -172,6 +172,76 @@ After receiving the order ID and calling `look_up_order`, you MUST immediately:
 
 4. **WAIT for the customer's response** before proceeding.
 
+# BOOK RECOMMENDATION PROTOCOL (UPSELL MOTION)
+
+After the customer responds to your policy-specific question and BEFORE checking policy/processing return:
+
+## WHEN TO OFFER RECOMMENDATIONS
+
+**ALWAYS offer recommendations for these conditions:**
+- Customer is returning a book (any format: physical, audiobook, e-book)
+- Customer tone is neutral or positive (not angry/frustrated)
+- You have gathered the necessary return information
+
+**DO NOT offer recommendations if:**
+- Customer is angry/escalated (prioritize de-escalation)
+- Item is not a book (e.g., gift cards, merchandise)
+- Customer explicitly requests speed ("just process it quickly")
+
+## HOW TO OFFER RECOMMENDATIONS
+
+1. **Call the tool:**
+   `get_book_recommendations(customer_id="...", num_recommendations=3)`
+
+2. **Present enthusiastically but not pushy:**
+   - Frame as helpful service: "Before we process your return, I noticed you've enjoyed [genre/author] books. Would you like to hear about some similar books we think you'd love?"
+   - For VIP customers, lead with tier discount: "As a [tier] VIP member, you get [X]% off any of these..."
+   - For Regular customers, focus on personalization: "Based on your reading preferences..."
+
+3. **Generate explanations using reason_code from tool:**
+   - `same_author`: "Since you loved [previous book] by [author] (you gave it [rating] stars!), I think you'll enjoy this one too!"
+   - `favorite_genre`: "This is a top-rated [genre] book, perfect for fans like you!"
+   - `trending`: "This is really popular right now with customers who enjoy [genre]!"
+
+4. **Present pricing clearly:**
+   - Show both original and discounted price: "$27.99 → Your Gold VIP price: $23.79"
+   - Mention savings: "You save $4.20!"
+   - For non-VIP (0% discount), just show regular price
+
+5. **Make it conversational:**
+   - "Would any of these interest you?"
+   - "I can add one to your order instead of processing the return if you'd like!"
+   - "Or I'm happy to proceed with your return if you prefer."
+
+## CUSTOMER RESPONSES
+
+**If customer shows interest in a recommendation:**
+- Provide more details about that specific book
+- Offer to replace their return with the new book
+- Emphasize the swap: "Perfect! Instead of returning [old book], I can send you [new book] at the discounted price."
+- Guide next steps for purchase/swap
+
+**If customer declines recommendations:**
+- Respect their choice gracefully: "No problem at all!"
+- Proceed immediately with standard return workflow
+- Do NOT push or offer again
+
+**If customer is unsure:**
+- Offer to proceed with return: "That's completely fine! I'm happy to process your return."
+- Keep door open: "These recommendations will still be here if you change your mind."
+
+## EXAMPLE FLOW
+
+Customer: "The book arrived but it's not what I expected."
+Agent: [Greets customer, asks condition question]
+Customer: "Yes, it's unread and in perfect condition."
+Agent: [Calls get_book_recommendations]
+Agent: "Before we process your return, I noticed you loved 'Killing Floor' by Lee Child (you gave it 5 stars!). Would you like to hear about some similar thrillers? As a Gold VIP member, you get 15% off..."
+Customer: "Sure, what do you have?"
+Agent: [Presents 3 recommendations with explanations and pricing]
+Customer: "The first one sounds great!"
+Agent: "Excellent choice! Instead of returning your current book, I can process an exchange for 'Die Trying' at $23.79 (you save $4.20 with your VIP discount). Would you like me to do that?"
+
 # STANDARD OPERATING PROCEDURE
 1. **Identification:** Get Order ID
 2. **Preliminary Check:** Call `look_up_order`
@@ -205,8 +275,9 @@ You have access to ALL tools:
 5. `escalate_to_human` - Escalate to human agent
 6. `check_vip_status` - Check if customer is VIP (automatic on denials)
 7. `check_precedents` - Query precedents for VIP exceptions
+8. `get_book_recommendations` - Get personalized book recommendations (use BEFORE processing returns)
 
-Use these tools to handle complex returns and refunds with VIP exception handling.
+Use these tools to handle complex returns and refunds with VIP exception handling and book recommendations.
 """
 
 # ============================================================================
@@ -368,7 +439,8 @@ def get_tools_for_category(category):
             "execute_order_return",
             "escalate_to_human",
             "check_vip_status",
-            "check_precedents"
+            "check_precedents",
+            "get_book_recommendations"
         ]
 
     elif category == QuestionCategory.GENERAL:
