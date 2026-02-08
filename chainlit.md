@@ -1,20 +1,21 @@
-# Welcome to TrueCart
+# Welcome to Bookly
 
-Hello! I'm your **TrueCart Customer Experience Assistant**, powered by advanced artificial intelligence to help resolve your order and support issues quickly and efficiently.
+Hello! I'm your **Bookly AI Assistant**, powered by advanced artificial intelligence to help you with all your bookshop needs.
 
 ## How I Can Help
 
 I'm here to assist you with:
 
-- **Order Tracking & Status** - Get real-time updates on your orders
-- **Issue Resolution** - Report problems and get immediate assistance
-- **Returns & Refunds** - Process returns and check refund status
-- **Account Support** - Help with account-related questions
-- **Product Information** - Learn about products and services
+- **Order Tracking & Status** - Get real-time updates on your book orders
+- **Returns & Refunds** - Process returns and check refund status for books and accessories
+- **Book Recommendations** - Find your next great read
+- **Account Support** - Password resets, account management, and preferences
+- **Policies & Information** - Shipping, privacy, and general bookshop policies
+- **General Questions** - FAQs about our bookshop and services
 
 ## Getting Started
 
-Simply type your question or describe your issue in the chat below. I'll analyze your request and provide personalized assistance based on our policies and your specific situation.
+Simply type your question in the chat below. Whether you need help with an order, want to return a book, or have questions about our services, I'm here to help!
 
 ### For Administrators
 
@@ -22,4 +23,4 @@ Switch to **Decision Reviewer** mode to investigate agent decisions and review s
 
 ---
 
-**Note:** This assistant uses AI-powered decision making with policy precedent tracking to ensure consistent and accurate support across all customer interactions.
+**Note:** This assistant uses AI-powered decision making with intelligent question routing to ensure you get fast, accurate support for all your bookshop needs.
