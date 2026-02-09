@@ -22,3 +22,8 @@
 - [x] T7: Create docs for shipping, policy,  password reset procedures- create .md files and store them in the policies folder
 - [x] T8: think about other common & frequently asked questions for a book shop business and add them to a faq.md file in the policies folder
 
+
+## Chore: Should I move the policies from prompts.py to policies folder and then reference them in the prompts.pyWhat are the pros and Cons? Think deeply and think step-by-step
+
+## Chore: investigate if it makes sense to divide the prompt.py into multiple prompt files by category? What are the pros and Cons? Think deeply and think step-by-step  
+

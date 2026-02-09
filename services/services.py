@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from logging_config import get_session_id
-from data.data_loader import MOCK_ORDERS, MOCK_CUSTOMERS
+from data.data_loader import MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_BOOKS
 
 # Get loggers (logging configured by logging_config.py)
 logger = logging.getLogger("BackendServices")
@@ -113,18 +113,19 @@ class EnterpriseServices:
     def get_customer_info(customer_id):
         """
         Retrieve comprehensive customer information for greeting and personalization.
-        Returns customer details including name, VIP status, tier, and tenure.
+        Returns customer details including name, VIP status, tier, tenure, AND reading preferences.
 
         This is used for:
         - Personalized greeting after order lookup
         - Displaying customer loyalty information
         - VIP acknowledgment
+        - Crafting personalized recommendation offers (genres/authors)
 
         Args:
             customer_id: Customer identifier
 
         Returns:
-            dict with customer_name, is_vip, tier (if VIP), years_active, member_since
+            dict with customer_name, is_vip, tier, years_active, reading_preferences, purchase_summary
         """
         logger.info(f"API CALL: Fetching customer info for Customer ID: {customer_id}")
 
@@ -136,15 +137,59 @@ class EnterpriseServices:
                 f"API SUCCESS: Customer info retrieved for {customer_id} - "
                 f"{customer_data['customer_name']} ({'VIP' if customer_data['is_vip'] else 'Regular'})"
             )
+
+            # Extract reading preferences if available
+            reading_prefs = customer_data.get("reading_preferences", {})
+            purchase_history = customer_data.get("purchase_history", [])
+
+            # Create purchase summary (top authors and highly-rated books)
+            top_authors = []
+            highly_rated_books = []
+
+            if purchase_history:
+                # Get authors from purchases
+                author_counts = {}
+                for book in purchase_history:
+                    author = book.get("author")
+                    if author:
+                        author_counts[author] = author_counts.get(author, 0) + 1
+
+                # Top 3 authors by purchase count
+                top_authors = sorted(author_counts.keys(), key=lambda a: author_counts[a], reverse=True)[:3]
+
+                # Books rated 4 or 5 stars
+                highly_rated_books = [
+                    {
+                        "title": book.get("title"),
+                        "author": book.get("author"),
+                        "rating": book.get("rating")
+                    }
+                    for book in purchase_history
+                    if book.get("rating", 0) >= 4
+                ][:3]  # Top 3 highly-rated
+
             return {
                 "found": True,
                 "customer_id": customer_id,
                 "customer_name": customer_data.get("customer_name"),
                 "is_vip": customer_data.get("is_vip", False),
-                "tier": customer_data.get("tier"),  # Only for VIP customers
+                "tier": customer_data.get("tier"),
                 "years_active": customer_data.get("years_active"),
                 "member_since": customer_data.get("member_since"),
-                "lifetime_value": customer_data.get("lifetime_value")  # Only for VIP customers
+                "lifetime_value": customer_data.get("lifetime_value"),
+
+                # NEW: Reading preferences for personalization
+                "reading_preferences": {
+                    "favorite_genres": reading_prefs.get("favorite_genres", []),
+                    "favorite_authors": reading_prefs.get("favorite_authors", []),
+                    "preferred_formats": reading_prefs.get("preferred_formats", [])
+                },
+
+                # NEW: Purchase summary for personalization
+                "purchase_summary": {
+                    "top_authors": top_authors,
+                    "highly_rated_books": highly_rated_books
+                }
             }
         else:
             logger.warning(f"API FAIL: Customer not found: {customer_id}")
@@ -418,3 +463,427 @@ class EnterpriseServices:
         except Exception as e:
             logger.error(f"Attribution query failed: {e}", exc_info=True)
             return {"error": str(e)}
+
+    @staticmethod
+    def get_book_recommendations(customer_id: str, num_recommendations: int = 3, context: str | None = None) -> dict:
+        """
+        Generate personalized book recommendations for a customer using rule-based algorithm.
+
+        Recommendation algorithm (3 prioritized rules):
+        1. Books by same authors customer rated 4+ stars (strongest signal)
+        2. Top-rated books in customer's favorite genres (not yet purchased)
+        3. Popular books in similar genres (trending)
+
+        Applies tier-based discounts:
+        - Silver: 10%
+        - Gold: 15%
+        - Platinum: 25%
+        - Regular: 0%
+
+        Args:
+            customer_id: Customer identifier
+            num_recommendations: Number of recommendations to return (default: 3)
+            context: Optional context about what they're returning (e.g., 'thriller', 'sci-fi')
+
+        Returns:
+            dict with recommendations list, customer info, and discount percentage
+        """
+        logger.info(f"RECOMMENDATION ENGINE: Generating recommendations for customer {customer_id}")
+
+        # Load customer profile
+        customer_data = MOCK_CUSTOMERS.get(customer_id)
+
+        if not customer_data:
+            logger.warning(f"RECOMMENDATION ENGINE: Customer {customer_id} not found")
+            return {
+                "status": "error",
+                "error": "Customer not found"
+            }
+
+        customer_name = customer_data.get("customer_name", "Customer")
+        is_vip = customer_data.get("is_vip", False)
+        tier = customer_data.get("tier") if is_vip else "Regular"
+
+        # Determine discount percentage based on tier
+        discount_map = {
+            "Silver": 10,
+            "Gold": 15,
+            "Platinum": 25,
+            "Regular": 0
+        }
+        discount_percentage = discount_map.get(tier, 0)
+
+        logger.info(f"RECOMMENDATION ENGINE: Customer {customer_name} - Tier: {tier}, Discount: {discount_percentage}%")
+
+        # Get purchased titles to exclude
+        purchase_history = customer_data.get("purchase_history", [])
+        purchased_titles = {book.get("title", "").lower() for book in purchase_history}
+
+        logger.info(f"RECOMMENDATION ENGINE: Customer has purchased {len(purchased_titles)} books")
+
+        # Initialize recommendations list
+        recommendations = []
+
+        # RULE 1: Books by same authors customer rated 4+ stars
+        liked_authors = [
+            book.get("author")
+            for book in purchase_history
+            if book.get("rating", 0) >= 4 and book.get("author")
+        ]
+
+        if liked_authors:
+            logger.info(f"RECOMMENDATION ENGINE: Rule 1 - Searching for books by liked authors: {liked_authors}")
+            same_author_books = EnterpriseServices._find_books_by_authors(liked_authors, purchased_titles)
+            recommendations.extend(same_author_books[:2])  # Top 2
+            logger.info(f"RECOMMENDATION ENGINE: Rule 1 found {len(same_author_books)} books, added top 2")
+
+        # RULE 2: Top-rated books in favorite genres
+        reading_preferences = customer_data.get("reading_preferences", {})
+        favorite_genres = reading_preferences.get("favorite_genres", [])
+
+        if favorite_genres:
+            logger.info(f"RECOMMENDATION ENGINE: Rule 2 - Searching in favorite genres: {favorite_genres}")
+            genre_books = EnterpriseServices._find_top_rated_in_genres(favorite_genres, purchased_titles)
+            recommendations.extend(genre_books[:2])  # Top 2
+            logger.info(f"RECOMMENDATION ENGINE: Rule 2 found {len(genre_books)} books, added top 2")
+
+        # RULE 3: Popular books in similar genres
+        if favorite_genres:
+            logger.info(f"RECOMMENDATION ENGINE: Rule 3 - Searching popular books in similar genres")
+            popular_books = EnterpriseServices._find_popular_in_similar_genres(favorite_genres, purchased_titles)
+            recommendations.extend(popular_books[:1])  # Top 1
+            logger.info(f"RECOMMENDATION ENGINE: Rule 3 found {len(popular_books)} books, added top 1")
+
+        # Deduplicate and limit to requested number
+        unique_recommendations = EnterpriseServices._unique_books(recommendations)
+        final_recommendations = unique_recommendations[:num_recommendations]
+
+        logger.info(f"RECOMMENDATION ENGINE: Returning {len(final_recommendations)} unique recommendations")
+
+        # Format recommendations with pricing
+        formatted_recommendations = []
+        for rec in final_recommendations:
+            book_data = rec["book_data"]
+            original_price = book_data.get("price", 0.0)
+            discounted_price = original_price * (1 - discount_percentage / 100)
+            savings = original_price - discounted_price
+
+            formatted_recommendations.append({
+                "book_id": rec["book_id"],
+                "title": book_data.get("title"),
+                "author": book_data.get("author"),
+                "genre": book_data.get("genre"),
+                "price": original_price,
+                "discounted_price": round(discounted_price, 2),
+                "savings": round(savings, 2),
+                "format": book_data.get("formats", ["Hardcover"])[0],  # Default to first format
+                "rating": book_data.get("rating"),
+                "reason_code": rec["reason_code"],
+                "match_data": rec.get("match_data", {})
+            })
+
+        audit_logger.info(
+            f"Recommendations generated for {customer_id}",
+            extra={
+                'session_id': get_session_id(),
+                'customer_id': customer_id,
+                'customer_tier': tier,
+                'discount_percentage': discount_percentage,
+                'num_recommendations': len(formatted_recommendations),
+                'event_type': 'RECOMMENDATIONS_GENERATED'
+            }
+        )
+
+        return {
+            "status": "success",
+            "customer_name": customer_name,
+            "customer_tier": tier,
+            "discount_percentage": discount_percentage,
+            "recommendations": formatted_recommendations
+        }
+
+    @staticmethod
+    def _find_books_by_authors(authors: list[str], exclude_titles: set[str]) -> list[dict]:
+        """
+        Find books by specified authors, excluding already purchased titles.
+
+        Args:
+            authors: List of author names
+            exclude_titles: Set of book titles (lowercase) to exclude
+
+        Returns:
+            List of dicts with book_id, book_data, reason_code, and match_data
+        """
+        results = []
+
+        for book_id, book_data in MOCK_BOOKS.items():
+            book_author = book_data.get("author", "")
+            book_title = book_data.get("title", "").lower()
+
+            # Check if book is by one of the liked authors and not already purchased
+            if book_author in authors and book_title not in exclude_titles:
+                results.append({
+                    "book_id": book_id,
+                    "book_data": book_data,
+                    "reason_code": "same_author",
+                    "match_data": {
+                        "matched_author": book_author
+                    }
+                })
+
+        # Sort by rating (highest first)
+        results.sort(key=lambda x: x["book_data"].get("rating", 0), reverse=True)
+
+        return results
+
+    @staticmethod
+    def _find_top_rated_in_genres(genres: list[str], exclude_titles: set[str]) -> list[dict]:
+        """
+        Find top-rated books in specified genres, excluding already purchased titles.
+
+        Args:
+            genres: List of genre names
+            exclude_titles: Set of book titles (lowercase) to exclude
+
+        Returns:
+            List of dicts with book_id, book_data, reason_code, and match_data
+        """
+        results = []
+
+        for book_id, book_data in MOCK_BOOKS.items():
+            book_genre = book_data.get("genre", "")
+            book_title = book_data.get("title", "").lower()
+            book_tags = book_data.get("tags", [])
+
+            # Check if book matches any of the favorite genres
+            # Match on exact genre or if genre appears in tags
+            genre_match = None
+            for genre in genres:
+                if genre.lower() in book_genre.lower() or any(genre.lower() in tag.lower() for tag in book_tags):
+                    genre_match = genre
+                    break
+
+            if genre_match and book_title not in exclude_titles:
+                results.append({
+                    "book_id": book_id,
+                    "book_data": book_data,
+                    "reason_code": "favorite_genre",
+                    "match_data": {
+                        "matched_genre": genre_match
+                    }
+                })
+
+        # Sort by rating (highest first)
+        results.sort(key=lambda x: x["book_data"].get("rating", 0), reverse=True)
+
+        return results
+
+    @staticmethod
+    def _find_popular_in_similar_genres(genres: list[str], exclude_titles: set[str]) -> list[dict]:
+        """
+        Find popular books in similar genres based on popularity score.
+
+        Args:
+            genres: List of genre names
+            exclude_titles: Set of book titles (lowercase) to exclude
+
+        Returns:
+            List of dicts with book_id, book_data, reason_code, and match_data
+        """
+        results = []
+
+        for book_id, book_data in MOCK_BOOKS.items():
+            book_genre = book_data.get("genre", "")
+            book_title = book_data.get("title", "").lower()
+            book_tags = book_data.get("tags", [])
+
+            # Check if book matches any of the favorite genres
+            genre_match = None
+            for genre in genres:
+                if genre.lower() in book_genre.lower() or any(genre.lower() in tag.lower() for tag in book_tags):
+                    genre_match = genre
+                    break
+
+            if genre_match and book_title not in exclude_titles:
+                results.append({
+                    "book_id": book_id,
+                    "book_data": book_data,
+                    "reason_code": "trending",
+                    "match_data": {
+                        "matched_genre": genre_match,
+                        "popularity_score": book_data.get("popularity_score", 0)
+                    }
+                })
+
+        # Sort by popularity score (highest first)
+        results.sort(key=lambda x: x["book_data"].get("popularity_score", 0), reverse=True)
+
+        return results
+
+    @staticmethod
+    def _unique_books(book_list: list[dict]) -> list[dict]:
+        """
+        Deduplicate books by book_id, keeping first occurrence.
+
+        Args:
+            book_list: List of book dicts with book_id
+
+        Returns:
+            Deduplicated list
+        """
+        seen = set()
+        unique = []
+
+        for book in book_list:
+            book_id = book.get("book_id")
+            if book_id and book_id not in seen:
+                seen.add(book_id)
+                unique.append(book)
+
+        return unique
+
+    @staticmethod
+    def process_exchange(original_order_id: str, new_book_id: str, new_book_title: str,
+                        customer_id: str, return_reason: str) -> dict:
+        """
+        Process an automatic book exchange - return original order and create new order in one transaction.
+
+        This simulates a seamless exchange where:
+        1. Original order is returned and refund is processed
+        2. New order is created for the selected book
+        3. Same delivery address is used from original order
+        4. Price difference is automatically charged/credited to card on file
+
+        Args:
+            original_order_id: Order ID being returned
+            new_book_id: Book ID from recommendations
+            new_book_title: Title of new book for confirmation
+            customer_id: Customer ID
+            return_reason: Reason for return
+
+        Returns:
+            dict with complete exchange details including both transactions
+        """
+        logger.info(
+            f"EXCHANGE: Processing automatic exchange | "
+            f"Original Order: {original_order_id} | New Book: {new_book_id} ({new_book_title})"
+        )
+
+        # Get original order details
+        original_order = MOCK_ORDERS.get(original_order_id)
+        if not original_order:
+            logger.error(f"EXCHANGE: Original order not found: {original_order_id}")
+            return {"status": "error", "error": "Original order not found"}
+
+        # Get new book details
+        new_book = MOCK_BOOKS.get(new_book_id)
+        if not new_book:
+            logger.error(f"EXCHANGE: New book not found: {new_book_id}")
+            return {"status": "error", "error": "Book not found"}
+
+        # Get customer info for VIP discount
+        customer_data = MOCK_CUSTOMERS.get(customer_id)
+        if not customer_data:
+            logger.warning(f"EXCHANGE: Customer not found: {customer_id}")
+            customer_data = {}
+
+        is_vip = customer_data.get("is_vip", False)
+        tier = customer_data.get("tier", "Regular")
+
+        # Calculate pricing
+        discount_map = {"Silver": 10, "Gold": 15, "Platinum": 25, "Regular": 0}
+        discount_percentage = discount_map.get(tier, 0)
+
+        original_price = 28.99  # Mock - in production, would fetch from original order
+        new_book_price = new_book.get("price", 29.99)
+        discounted_price = new_book_price * (1 - discount_percentage / 100)
+        price_difference = discounted_price - original_price
+
+        # Generate mock transaction IDs
+        return_txn_id = f"txn_{random.randint(10000, 99999)}"
+        new_order_id = f"ORD-{random.randint(1000, 9999)}"
+        exchange_txn_id = f"txn_{random.randint(10000, 99999)}"
+
+        # Mock delivery address (in production, would fetch from order management system)
+        delivery_address = {
+            "street": "123 Main Street",
+            "city": "Los Angeles",
+            "state": "CA",
+            "zip": "90001"
+        }
+
+        # Mock payment method (in production, would fetch from payment system)
+        card_last_four = "4242"
+
+        logger.info(
+            f"EXCHANGE: ✅ Exchange processed successfully | "
+            f"Return TXN: {return_txn_id} | New Order: {new_order_id} | Exchange TXN: {exchange_txn_id}"
+        )
+
+        # Log to audit system
+        audit_logger.info(
+            f"Exchange processed: {original_order_id} → {new_order_id}",
+            extra={
+                'session_id': get_session_id(),
+                'original_order_id': original_order_id,
+                'new_order_id': new_order_id,
+                'new_book_id': new_book_id,
+                'new_book_title': new_book_title,
+                'customer_id': customer_id,
+                'customer_tier': tier,
+                'return_txn_id': return_txn_id,
+                'exchange_txn_id': exchange_txn_id,
+                'price_difference': round(price_difference, 2),
+                'event_type': 'EXCHANGE_PROCESSED'
+            }
+        )
+
+        return {
+            "status": "success",
+            "exchange_type": "automatic",
+
+            # Return transaction details
+            "return_transaction": {
+                "transaction_id": return_txn_id,
+                "original_order_id": original_order_id,
+                "return_reason": return_reason,
+                "status": "processed"
+            },
+
+            # New order details
+            "new_order": {
+                "order_id": new_order_id,
+                "book_id": new_book_id,
+                "book_title": new_book_title,
+                "book_author": new_book.get("author", "Unknown"),
+                "format": new_book.get("formats", ["Hardcover"])[0],
+                "original_price": new_book_price,
+                "discounted_price": round(discounted_price, 2),
+                "discount_applied": discount_percentage,
+                "status": "confirmed"
+            },
+
+            # Delivery details
+            "delivery": {
+                "address": f"{delivery_address['street']}, {delivery_address['city']}, {delivery_address['state']} {delivery_address['zip']}",
+                "estimated_delivery": "3-5 business days",
+                "shipping_method": "Standard Shipping",
+                "tracking_available": "You'll receive tracking info via email within 24 hours"
+            },
+
+            # Payment details
+            "payment": {
+                "transaction_id": exchange_txn_id,
+                "price_difference": round(price_difference, 2),
+                "payment_action": "credit" if price_difference < 0 else "charge",
+                "card_last_four": card_last_four,
+                "processing_message": f"${abs(price_difference):.2f} will be {'credited to' if price_difference < 0 else 'charged to'} your card ending in {card_last_four} within 3-5 business days"
+            },
+
+            # VIP benefits
+            "vip_benefits": {
+                "tier": tier,
+                "free_return_shipping": is_vip,
+                "discount_percentage": discount_percentage
+            }
+        }

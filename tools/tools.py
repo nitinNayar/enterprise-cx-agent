@@ -103,5 +103,59 @@ tools_schema: list[dict[str, Any]] = [
             },
             "required": ["query_tags_str"]
         }
+    },
+
+    {
+        "name": "get_book_recommendations",
+        "description": "Get personalized book recommendations for a customer. Use this when a customer requests a return and you want to offer alternative books they might enjoy instead. IMPORTANT: Call this AFTER gathering return information (order details, customer info) but BEFORE processing the return. This gives customers an attractive alternative that might prevent the return. Only offer recommendations if: 1) Customer is returning a book, 2) Customer tone is neutral or positive (not angry/frustrated), 3) You have gathered necessary return information. Do NOT offer if customer is angry/escalated or explicitly requests speed.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string",
+                    "description": "The customer ID from the order lookup result"
+                },
+                "num_recommendations": {
+                    "type": "integer",
+                    "description": "Number of recommendations to return (default: 3)"
+                },
+                "context": {
+                    "type": "string",
+                    "description": "Optional context about what they're returning (e.g., 'thriller', 'sci-fi') to improve recommendations"
+                }
+            },
+            "required": ["customer_id"]
+        }
+    },
+
+    {
+        "name": "process_exchange",
+        "description": "Process an automatic book exchange (return + new order in one transaction). Use this when a customer selects a recommended book for exchange. This tool will: 1) Process the return of the original order, 2) Create a new order for the selected book using the same delivery address, 3) Automatically charge/credit the price difference to the card on file, 4) Return complete transaction details. ONLY use this when customer explicitly confirms they want to exchange for a specific recommended book.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "original_order_id": {
+                    "type": "string",
+                    "description": "The order ID being returned"
+                },
+                "new_book_id": {
+                    "type": "string",
+                    "description": "The book ID from recommendations that customer wants to exchange for"
+                },
+                "new_book_title": {
+                    "type": "string",
+                    "description": "The title of the new book for confirmation"
+                },
+                "customer_id": {
+                    "type": "string",
+                    "description": "The customer ID from the order lookup"
+                },
+                "return_reason": {
+                    "type": "string",
+                    "description": "Reason for the return (e.g., 'not as expected', 'exchanging for different title')"
+                }
+            },
+            "required": ["original_order_id", "new_book_id", "new_book_title", "customer_id", "return_reason"]
+        }
     }
 ]
