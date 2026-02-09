@@ -14,7 +14,11 @@ audit_logger = logging.getLogger("DecisionAudit")
 
 class SupportAgent:
     def __init__(self) -> None:
-        self.client = anthropic.Anthropic(api_key=Config.ANTHROPIC_API_KEY)
+        self.client = anthropic.Anthropic(
+            api_key=Config.ANTHROPIC_API_KEY,
+            max_retries=3,  # Retry failed requests up to 3 times
+            timeout=60.0    # Increase timeout to 60 seconds
+        )
         self.messages = [] # conversation history
         self.session_id = None  # Track session for audit logging
         self.precedent_used = None  # Track if precedent was used in this conversation
@@ -322,6 +326,46 @@ class SupportAgent:
                             }
                         )
 
+                    elif tool_name == "process_exchange":
+                        result = EnterpriseServices.process_exchange(
+                            original_order_id=tool_input.get("original_order_id"),
+                            new_book_id=tool_input.get("new_book_id"),
+                            new_book_title=tool_input.get("new_book_title"),
+                            customer_id=tool_input.get("customer_id"),
+                            return_reason=tool_input.get("return_reason")
+                        )
+
+                        # Log tool result with full exchange details
+                        audit_logger.info(
+                            f"Exchange processed: {tool_input.get('original_order_id')} → {result.get('new_order', {}).get('order_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'original_order_id': tool_input.get('original_order_id'),
+                                'new_order_id': result.get('new_order', {}).get('order_id'),
+                                'new_book_id': tool_input.get('new_book_id'),
+                                'new_book_title': tool_input.get('new_book_title'),
+                                'customer_id': tool_input.get('customer_id'),
+                                'exchange_status': result.get('status'),
+                                'return_txn_id': result.get('return_transaction', {}).get('transaction_id'),
+                                'payment_txn_id': result.get('payment', {}).get('transaction_id'),
+                                'price_difference': result.get('payment', {}).get('price_difference'),
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
+                        # Record decision to audit ledger
+                        decision_id = self.precedent_used.get('decision_id') if self.precedent_used else None
+                        person_id = self.precedent_used.get('person_id') if self.precedent_used else None
+
+                        EnterpriseServices.record_decision_to_ledger(
+                            order_id=tool_input.get("original_order_id"),
+                            agent_decision="EXCHANGE",
+                            decision_id=decision_id,
+                            person_id=person_id,
+                            rationale=f"Exchange for {tool_input.get('new_book_title')}"
+                        )
+
                     else:
                         logger.error(f"Unknown tool called: {tool_name}")
                         result = {"error": f"Tool '{tool_name}' not found."}
@@ -338,102 +382,3 @@ class SupportAgent:
                 
                 # The loop now restarts automatically!
                 # Claude will see the new history (Input + Tool Output) and decide the next step.
-
-
-
-
-
-
-
-
-
-    # def run(self, user_input):
-    #     logger.info(f"User Input {user_input}")
-    #     self.messages.append({"role":"user", "content": user_input})
-
-    #     # 1.    First call to Claude to determine Intent
-    #     response = self.client.messages.create(
-    #         model=Config.MODEL_NAME,
-    #         max_tokens=Config.MAX_TOKENS,
-    #         temperature=Config.TEMPERATURE,
-    #         system=Config.SYSTEM_PROMPT,
-    #         messages=self.messages,
-    #         tools=tools_schema
-    #     )
-
-    #     # 1.5   for debugging, lets print out what response looks like
-    #     # This converts the object to a pretty-printed string before passing to the logger
-    #     logger.debug(
-    #         "Full API Response:\n%s", 
-    #         json.dumps(response.__dict__, indent=2, default=str)
-    #     ) 
-
-    #     # 2.    Add Assistant's response to history
-    #     self.messages.append({"role": "assistant", "content": response.content})
-
-    #     # 3.    Check if Claude wants to use tools
-    #     tool_use_blocks = [block for block in response.content if block.type == "tool_use"]
-
-    #     if tool_use_blocks:
-    #         tool_result_content = []
-
-    #         for block in tool_use_blocks:
-    #             tool_name = block.name
-    #             tool_input = block.input
-    #             tool_id = block.id
-
-    #             logger.info(f"Decision: Agent Selected tool {tool_name} with input {tool_input}")
-
-    #             result = None
-
-    #             if tool_name == "look_up_order":
-    #                 result = EnterpriseServices.look_up_order(tool_input.get("order_id"))
-    #             elif tool_name == "get_policy_info":
-    #                 result = EnterpriseServices.get_policy_info(tool_input.get("policy_type"))
-    #             elif tool_name == "execute_order_return":
-    #                 result = EnterpriseServices.execute_refund(tool_input.get("order_id"), tool_input.get("reason"))
-    #             elif tool_name == "escalate_to_human":
-    #                 result = EnterpriseServices.escalate_to_human(tool_input.get("order_id"), tool_input.get("reason"))
-    #             else:
-    #                 # Handle the "Hallucinated Tool" case safely
-    #                 logger.error(f"Unknown tool called: {tool_name}")
-    #                 result = {"error": f"Tool '{tool_name}' not found."}
-
-    #             # Format Result for Anthropic
-    #             tool_result_content.append({
-    #                 "type": "tool_result",
-    #                 "tool_use_id": tool_id,
-    #                 "content": json.dumps(result)
-    #             })
-
-    #         # # 3.5   for debugging, lets print out what result looks like
-    #         # # This converts the object to a pretty-printed string before passing to the logger
-    #         # logger.debug(
-    #         #     "Full Tool Result:\n%s", 
-    #         #     json.dumps(result.__dict__, indent=2, default=str)
-    #         # ) 
-
-    #         # 4.    send tool results back to Claude
-    #         self.messages.append({"role": "user", "content": tool_result_content})
-
-    #         # 5.    Get Final result based on tool output
-    #         final_response = self.client.messages.create(
-    #             model=Config.MODEL_NAME,
-    #             max_tokens=Config.MAX_TOKENS,
-    #             temperature=Config.TEMPERATURE,
-    #             system=Config.SYSTEM_PROMPT,
-    #             messages=self.messages,
-    #             tools=tools_schema
-    #         )
-
-    #         final_text = final_response.content[0].text
-    #         self.messages.append({"role": "assistant", "content": final_text})
-            
-    #         logger.info("CYCLE COMPLETE: Sent final response to user.")
-    #         return final_text
-
-    #     else:
-    #         # No tool used
-    #         text_response = response.content[0].text
-    #         logger.info("CYCLE COMPLETE: Sent text response (No tools).")
-    #         return text_response

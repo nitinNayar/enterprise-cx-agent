@@ -24,10 +24,10 @@
       "status": "processing",
       "items": ["\"The Matrix and Philosophy\" (Paperback)", "Premium leather bookmark"],
       "eligible_for_return": true,
-      "customer_sentiment": "angry",
+      "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0999",
       "customer_name": "Neo Anderson",
-      "notes": "Customer is frustrated about delayed shipment"
+      "notes": "Customer wants to return - product not as expected"
     },
     "ORD-777": {
       "status": "delivered",

@@ -85,7 +85,11 @@ Response: GENERAL"""
 
     def __init__(self):
         """Initialize the router with Anthropic client"""
-        self.client = anthropic.Anthropic(api_key=Config.ANTHROPIC_API_KEY)
+        self.client = anthropic.Anthropic(
+            api_key=Config.ANTHROPIC_API_KEY,
+            max_retries=3,  # Retry failed requests up to 3 times
+            timeout=60.0    # Increase timeout to 60 seconds
+        )
         logger.info(f"QuestionRouter initialized with model: {self.ROUTER_MODEL}")
 
     def classify_question(self, user_message: str) -> QuestionCategory:

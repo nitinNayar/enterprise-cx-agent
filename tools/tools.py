@@ -126,5 +126,36 @@ tools_schema: list[dict[str, Any]] = [
             },
             "required": ["customer_id"]
         }
+    },
+
+    {
+        "name": "process_exchange",
+        "description": "Process an automatic book exchange (return + new order in one transaction). Use this when a customer selects a recommended book for exchange. This tool will: 1) Process the return of the original order, 2) Create a new order for the selected book using the same delivery address, 3) Automatically charge/credit the price difference to the card on file, 4) Return complete transaction details. ONLY use this when customer explicitly confirms they want to exchange for a specific recommended book.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "original_order_id": {
+                    "type": "string",
+                    "description": "The order ID being returned"
+                },
+                "new_book_id": {
+                    "type": "string",
+                    "description": "The book ID from recommendations that customer wants to exchange for"
+                },
+                "new_book_title": {
+                    "type": "string",
+                    "description": "The title of the new book for confirmation"
+                },
+                "customer_id": {
+                    "type": "string",
+                    "description": "The customer ID from the order lookup"
+                },
+                "return_reason": {
+                    "type": "string",
+                    "description": "Reason for the return (e.g., 'not as expected', 'exchanging for different title')"
+                }
+            },
+            "required": ["original_order_id", "new_book_id", "new_book_title", "customer_id", "return_reason"]
+        }
     }
 ]

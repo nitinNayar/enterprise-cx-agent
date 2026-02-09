@@ -113,18 +113,19 @@ class EnterpriseServices:
     def get_customer_info(customer_id):
         """
         Retrieve comprehensive customer information for greeting and personalization.
-        Returns customer details including name, VIP status, tier, and tenure.
+        Returns customer details including name, VIP status, tier, tenure, AND reading preferences.
 
         This is used for:
         - Personalized greeting after order lookup
         - Displaying customer loyalty information
         - VIP acknowledgment
+        - Crafting personalized recommendation offers (genres/authors)
 
         Args:
             customer_id: Customer identifier
 
         Returns:
-            dict with customer_name, is_vip, tier (if VIP), years_active, member_since
+            dict with customer_name, is_vip, tier, years_active, reading_preferences, purchase_summary
         """
         logger.info(f"API CALL: Fetching customer info for Customer ID: {customer_id}")
 
@@ -136,15 +137,59 @@ class EnterpriseServices:
                 f"API SUCCESS: Customer info retrieved for {customer_id} - "
                 f"{customer_data['customer_name']} ({'VIP' if customer_data['is_vip'] else 'Regular'})"
             )
+
+            # Extract reading preferences if available
+            reading_prefs = customer_data.get("reading_preferences", {})
+            purchase_history = customer_data.get("purchase_history", [])
+
+            # Create purchase summary (top authors and highly-rated books)
+            top_authors = []
+            highly_rated_books = []
+
+            if purchase_history:
+                # Get authors from purchases
+                author_counts = {}
+                for book in purchase_history:
+                    author = book.get("author")
+                    if author:
+                        author_counts[author] = author_counts.get(author, 0) + 1
+
+                # Top 3 authors by purchase count
+                top_authors = sorted(author_counts.keys(), key=lambda a: author_counts[a], reverse=True)[:3]
+
+                # Books rated 4 or 5 stars
+                highly_rated_books = [
+                    {
+                        "title": book.get("title"),
+                        "author": book.get("author"),
+                        "rating": book.get("rating")
+                    }
+                    for book in purchase_history
+                    if book.get("rating", 0) >= 4
+                ][:3]  # Top 3 highly-rated
+
             return {
                 "found": True,
                 "customer_id": customer_id,
                 "customer_name": customer_data.get("customer_name"),
                 "is_vip": customer_data.get("is_vip", False),
-                "tier": customer_data.get("tier"),  # Only for VIP customers
+                "tier": customer_data.get("tier"),
                 "years_active": customer_data.get("years_active"),
                 "member_since": customer_data.get("member_since"),
-                "lifetime_value": customer_data.get("lifetime_value")  # Only for VIP customers
+                "lifetime_value": customer_data.get("lifetime_value"),
+
+                # NEW: Reading preferences for personalization
+                "reading_preferences": {
+                    "favorite_genres": reading_prefs.get("favorite_genres", []),
+                    "favorite_authors": reading_prefs.get("favorite_authors", []),
+                    "preferred_formats": reading_prefs.get("preferred_formats", [])
+                },
+
+                # NEW: Purchase summary for personalization
+                "purchase_summary": {
+                    "top_authors": top_authors,
+                    "highly_rated_books": highly_rated_books
+                }
             }
         else:
             logger.warning(f"API FAIL: Customer not found: {customer_id}")
@@ -696,3 +741,149 @@ class EnterpriseServices:
                 unique.append(book)
 
         return unique
+
+    @staticmethod
+    def process_exchange(original_order_id: str, new_book_id: str, new_book_title: str,
+                        customer_id: str, return_reason: str) -> dict:
+        """
+        Process an automatic book exchange - return original order and create new order in one transaction.
+
+        This simulates a seamless exchange where:
+        1. Original order is returned and refund is processed
+        2. New order is created for the selected book
+        3. Same delivery address is used from original order
+        4. Price difference is automatically charged/credited to card on file
+
+        Args:
+            original_order_id: Order ID being returned
+            new_book_id: Book ID from recommendations
+            new_book_title: Title of new book for confirmation
+            customer_id: Customer ID
+            return_reason: Reason for return
+
+        Returns:
+            dict with complete exchange details including both transactions
+        """
+        logger.info(
+            f"EXCHANGE: Processing automatic exchange | "
+            f"Original Order: {original_order_id} | New Book: {new_book_id} ({new_book_title})"
+        )
+
+        # Get original order details
+        original_order = MOCK_ORDERS.get(original_order_id)
+        if not original_order:
+            logger.error(f"EXCHANGE: Original order not found: {original_order_id}")
+            return {"status": "error", "error": "Original order not found"}
+
+        # Get new book details
+        new_book = MOCK_BOOKS.get(new_book_id)
+        if not new_book:
+            logger.error(f"EXCHANGE: New book not found: {new_book_id}")
+            return {"status": "error", "error": "Book not found"}
+
+        # Get customer info for VIP discount
+        customer_data = MOCK_CUSTOMERS.get(customer_id)
+        if not customer_data:
+            logger.warning(f"EXCHANGE: Customer not found: {customer_id}")
+            customer_data = {}
+
+        is_vip = customer_data.get("is_vip", False)
+        tier = customer_data.get("tier", "Regular")
+
+        # Calculate pricing
+        discount_map = {"Silver": 10, "Gold": 15, "Platinum": 25, "Regular": 0}
+        discount_percentage = discount_map.get(tier, 0)
+
+        original_price = 28.99  # Mock - in production, would fetch from original order
+        new_book_price = new_book.get("price", 29.99)
+        discounted_price = new_book_price * (1 - discount_percentage / 100)
+        price_difference = discounted_price - original_price
+
+        # Generate mock transaction IDs
+        return_txn_id = f"txn_{random.randint(10000, 99999)}"
+        new_order_id = f"ORD-{random.randint(1000, 9999)}"
+        exchange_txn_id = f"txn_{random.randint(10000, 99999)}"
+
+        # Mock delivery address (in production, would fetch from order management system)
+        delivery_address = {
+            "street": "123 Main Street",
+            "city": "Los Angeles",
+            "state": "CA",
+            "zip": "90001"
+        }
+
+        # Mock payment method (in production, would fetch from payment system)
+        card_last_four = "4242"
+
+        logger.info(
+            f"EXCHANGE: ✅ Exchange processed successfully | "
+            f"Return TXN: {return_txn_id} | New Order: {new_order_id} | Exchange TXN: {exchange_txn_id}"
+        )
+
+        # Log to audit system
+        audit_logger.info(
+            f"Exchange processed: {original_order_id} → {new_order_id}",
+            extra={
+                'session_id': get_session_id(),
+                'original_order_id': original_order_id,
+                'new_order_id': new_order_id,
+                'new_book_id': new_book_id,
+                'new_book_title': new_book_title,
+                'customer_id': customer_id,
+                'customer_tier': tier,
+                'return_txn_id': return_txn_id,
+                'exchange_txn_id': exchange_txn_id,
+                'price_difference': round(price_difference, 2),
+                'event_type': 'EXCHANGE_PROCESSED'
+            }
+        )
+
+        return {
+            "status": "success",
+            "exchange_type": "automatic",
+
+            # Return transaction details
+            "return_transaction": {
+                "transaction_id": return_txn_id,
+                "original_order_id": original_order_id,
+                "return_reason": return_reason,
+                "status": "processed"
+            },
+
+            # New order details
+            "new_order": {
+                "order_id": new_order_id,
+                "book_id": new_book_id,
+                "book_title": new_book_title,
+                "book_author": new_book.get("author", "Unknown"),
+                "format": new_book.get("formats", ["Hardcover"])[0],
+                "original_price": new_book_price,
+                "discounted_price": round(discounted_price, 2),
+                "discount_applied": discount_percentage,
+                "status": "confirmed"
+            },
+
+            # Delivery details
+            "delivery": {
+                "address": f"{delivery_address['street']}, {delivery_address['city']}, {delivery_address['state']} {delivery_address['zip']}",
+                "estimated_delivery": "3-5 business days",
+                "shipping_method": "Standard Shipping",
+                "tracking_available": "You'll receive tracking info via email within 24 hours"
+            },
+
+            # Payment details
+            "payment": {
+                "transaction_id": exchange_txn_id,
+                "price_difference": round(price_difference, 2),
+                "payment_action": "credit" if price_difference < 0 else "charge",
+                "card_last_four": card_last_four,
+                "processing_message": f"${abs(price_difference):.2f} will be {'credited to' if price_difference < 0 else 'charged to'} your card ending in {card_last_four} within 3-5 business days"
+            },
+
+            # VIP benefits
+            "vip_benefits": {
+                "tier": tier,
+                "free_return_shipping": is_vip,
+                "discount_percentage": discount_percentage
+            }
+        }
