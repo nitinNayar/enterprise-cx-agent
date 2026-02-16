@@ -1,6 +1,6 @@
 {
-  "_comment": "Mock order database for Bookly online bookstore. Keys are order IDs.",
-  "_last_updated": "2026-02-07",
+  "_comment": "Mock order database for Bookly online bookstore. Keys are order IDs. Dates calculated relative to 2026-02-13.",
+  "_last_updated": "2026-02-13",
   "orders": {
     "ORD-123": {
       "status": "shipped",
@@ -8,7 +8,10 @@
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-0001",
-      "customer_name": "John McClane"
+      "customer_name": "John McClane",
+      "purchase_date": "2026-02-10",
+      "shipped_date": "2026-02-11",
+      "days_since_purchase": 3
     },
     "ORD-456": {
       "status": "delivered",
@@ -18,6 +21,9 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0456",
       "customer_name": "Jason Bourne",
+      "purchase_date": "2025-12-30",
+      "delivered_date": "2026-01-02",
+      "days_since_purchase": 45,
       "notes": "Delivered 45 days ago, outside 30-day return window"
     },
     "ORD-999": {
@@ -27,6 +33,8 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0999",
       "customer_name": "Neo Anderson",
+      "purchase_date": "2026-02-12",
+      "days_since_purchase": 1,
       "notes": "Customer wants to return - product not as expected"
     },
     "ORD-777": {
@@ -36,6 +44,9 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-9921",
       "customer_name": "Sarah Connor",
+      "purchase_date": "2026-01-25",
+      "delivered_date": "2026-01-27",
+      "days_since_purchase": 19,
       "notes": "Signed limited edition, customer opened and read first chapter"
     },
     "ORD-888": {
@@ -46,7 +57,10 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0888",
       "customer_name": "Jack Ryan",
-      "notes": "Holiday gift purchased in December, now 39 days since purchase (outside 30-day window)"
+      "purchase_date": "2025-12-20",
+      "delivered_date": "2025-12-23",
+      "days_since_purchase": 55,
+      "notes": "Holiday gift purchased in December, now 55 days since purchase (outside 30-day window)"
     },
     "ORD-555": {
       "status": "delivered",
@@ -54,7 +68,10 @@
       "eligible_for_return": true,
       "customer_sentiment": "positive",
       "customer_id": "CUST-VIP-0555",
-      "customer_name": "Trinity"
+      "customer_name": "Trinity",
+      "purchase_date": "2026-02-01",
+      "delivered_date": "2026-02-03",
+      "days_since_purchase": 12
     },
     "ORD-111": {
       "status": "delivered",
@@ -62,7 +79,10 @@
       "eligible_for_return": true,
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0111",
-      "customer_name": "James Bond"
+      "customer_name": "James Bond",
+      "purchase_date": "2026-01-28",
+      "delivered_date": "2026-01-30",
+      "days_since_purchase": 16
     },
     "ORD-222": {
       "status": "delivered",
@@ -71,6 +91,9 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-0222",
       "customer_name": "Ethan Hunt",
+      "purchase_date": "2026-02-05",
+      "delivered_date": "2026-02-05",
+      "days_since_purchase": 8,
       "notes": "Customer downloaded and listened to 2 chapters, audiobooks typically non-returnable"
     },
     "ORD-333": {
@@ -80,6 +103,9 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0333",
       "customer_name": "Jack Sparrow",
+      "purchase_date": "2026-01-20",
+      "delivered_date": "2026-01-22",
+      "days_since_purchase": 24,
       "notes": "Customer spilled rum on the book, pages damaged"
     },
     "ORD-444": {
@@ -88,7 +114,10 @@
       "eligible_for_return": true,
       "customer_sentiment": "positive",
       "customer_id": "CUST-VIP-0444",
-      "customer_name": "Lara Croft"
+      "customer_name": "Lara Croft",
+      "purchase_date": "2026-02-03",
+      "delivered_date": "2026-02-05",
+      "days_since_purchase": 10
     },
     "ORD-666": {
       "status": "delivered",
@@ -97,6 +126,9 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0666",
       "customer_name": "Indiana Jones",
+      "purchase_date": "2026-02-08",
+      "delivered_date": "2026-02-08",
+      "days_since_purchase": 5,
       "notes": "Digital gift card, non-returnable per policy"
     },
     "ORD-1001": {
@@ -106,6 +138,9 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-1001",
       "customer_name": "Maximus Decimus",
+      "purchase_date": "2026-02-07",
+      "delivered_date": "2026-02-07",
+      "days_since_purchase": 6,
       "notes": "E-book downloaded, digital goods non-returnable"
     },
     "ORD-1234": {
@@ -115,6 +150,9 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-0222",
       "customer_name": "Ethan Hunt",
+      "purchase_date": "2026-01-18",
+      "delivered_date": "2026-01-22",
+      "days_since_purchase": 26,
       "notes": "Personalized inscription requested at purchase: 'To Ethan, may your missions be possible'"
     },
     "ORD-2001": {
@@ -124,6 +162,8 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0111",
       "customer_name": "James Bond",
+      "purchase_date": "2026-02-11",
+      "days_since_purchase": 2,
       "notes": "Subscription box being prepared, contains 3 curated spy thriller books + exclusive bookmark. Ships within 2-3 business days. Customer may want to cancel before shipment or ask about contents."
     },
     "ORD-2002": {
@@ -133,6 +173,9 @@
       "customer_sentiment": "positive",
       "customer_id": "CUST-VIP-0555",
       "customer_name": "Trinity",
+      "purchase_date": "2026-01-15",
+      "shipped_date": "2026-02-13",
+      "days_since_purchase": 29,
       "notes": "Pre-ordered book released today, shipped this morning. Customer has been eagerly waiting. Estimated delivery: 2-3 days. Tracking number available. Customer may ask for tracking or delivery estimate."
     },
     "ORD-2003": {
@@ -142,6 +185,8 @@
       "customer_sentiment": "neutral",
       "customer_id": "CUST-VIP-0444",
       "customer_name": "Lara Croft",
+      "purchase_date": "2026-02-09",
+      "days_since_purchase": 4,
       "notes": "Special order - rare book being sourced from third-party seller. Estimated to ship in 7-10 business days. Customer is a collector and understands longer wait times. May inquire about order status or request cancellation if taking too long."
     }
   }

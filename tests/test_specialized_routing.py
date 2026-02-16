@@ -68,7 +68,7 @@ class TestToolFiltering:
         """RETURNS_REFUNDS should have ALL tools"""
         tools = get_tools_for_category(QuestionCategory.RETURNS_REFUNDS)
 
-        # Should have all 7 tools
+        # Should have all 9 tools (includes recommendation and exchange features)
         assert "look_up_order" in tools
         assert "get_customer_info" in tools
         assert "get_policy_info" in tools
@@ -76,8 +76,10 @@ class TestToolFiltering:
         assert "escalate_to_human" in tools
         assert "check_vip_status" in tools
         assert "check_precedents" in tools
+        assert "get_book_recommendations" in tools
+        assert "process_exchange" in tools
 
-        assert len(tools) == 7
+        assert len(tools) == 9
 
     def test_general_tools(self):
         """GENERAL should have minimal tool set"""
@@ -98,7 +100,7 @@ class TestToolFiltering:
         general_tools = get_tools_for_category(QuestionCategory.GENERAL)
 
         assert len(order_tools) == 3  # Limited set
-        assert len(returns_tools) == 7  # All tools
+        assert len(returns_tools) == 9  # All tools (includes recommendations & exchange)
         assert len(general_tools) == 2  # Minimal set
 
 
@@ -171,10 +173,12 @@ class TestEndToEndSpecialization:
         tools = get_tools_for_category(category)
         prompt = get_prompt_for_category(category)
 
-        # Verify full tool set
-        assert len(tools) == 7
+        # Verify full tool set (9 tools includes recommendations & exchange)
+        assert len(tools) == 9
         assert "check_vip_status" in tools
         assert "check_precedents" in tools
+        assert "get_book_recommendations" in tools
+        assert "process_exchange" in tools
 
         # Verify comprehensive prompt
         assert "VIP" in prompt
