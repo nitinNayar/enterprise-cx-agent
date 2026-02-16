@@ -155,19 +155,7 @@ default_avatar_file_url = "/public/Bookly_Light.png"
 # custom_build = "./public/build"
 
 # Specify optional one or more custom links in the header.
-[[UI.header_links]]
-    name = "Help"
-    display_name = "Help Center"
-    icon_url = "https://api.iconify.design/mdi/help-circle-outline.svg"
-    url = "#"  # Replace with your actual help center URL
-    target = "_blank"
-
-[[UI.header_links]]
-    name = "Contact"
-    display_name = "Contact Support"
-    icon_url = "https://api.iconify.design/mdi/email-outline.svg"
-    url = "#"  # Replace with your actual contact URL
-    target = "_blank"
+# Custom header links removed
 
 [meta]
 generated_by = "2.9.4"
