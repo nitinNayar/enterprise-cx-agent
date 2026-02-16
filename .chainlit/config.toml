@@ -93,6 +93,8 @@ reaction_on_message_received = false
 name = "Bookly"
 
 # Set default theme (light or dark)
+# Note: Dark mode toggle is hidden via custom CSS (see public/brand.css)
+# to enforce light mode only and avoid theming issues
 default_theme = "light"
 
 # Force a specific language for all users (e.g., "en-US", "he-IL", "fr-FR")

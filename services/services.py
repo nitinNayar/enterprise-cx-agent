@@ -49,7 +49,11 @@ class EnterpriseServices:
         result = MOCK_ORDERS.get(order_id)
         if result:
             logger.info(f"API SUCCESS: Order found: {order_id} | Status: {result['status']}")
-            return result
+
+            # Filter out internal fields that agent shouldn't see
+            # Notes are for testing/documentation only - agent must ASK about condition
+            filtered_result = {k: v for k, v in result.items() if k != "notes"}
+            return filtered_result
         else:
             logger.warning(f"API FAIL: Order lookup failed: {order_id}")
             return {"error": "Order ID not found in system."}
@@ -69,6 +73,58 @@ class EnterpriseServices:
     def escalate_to_human(order_id, reason):
         logger.critical(f"API CALL: ESCALATION TRIGGERED | Order: {order_id} | Reason: {reason}")
         return {"status": "escalated", "ticket_id": f"TKT-{random.randint(100,999)}", "message": "Agent requested human intervention."}
+
+    @staticmethod
+    def escalate_order_issue(order_id, reason, policy_check_confirmation):
+        """
+        Escalate an order-related issue to the Order Support team.
+        Routes to high-priority queue with full order context.
+
+        In production, this would:
+        - Create ticket in Order Support queue (Zendesk, Intercom, etc.)
+        - Include full order details from look_up_order(order_id)
+        - Set SLA to 2-4 hours based on issue severity
+        - Notify Order Support team via Slack/email
+        - Attach customer profile and order history
+        """
+        ticket_id = f"TICKET-ORDER-{random.randint(1000,9999)}"
+
+        logger.critical(f"API CALL: ORDER ESCALATION | Order: {order_id} | Ticket: {ticket_id} | Reason: {reason}")
+
+        return {
+            "status": "escalated",
+            "ticket_id": ticket_id,
+            "queue": "order_support",
+            "sla_hours": 4,
+            "order_id": order_id,
+            "message": f"Your request has been escalated to our Order Support team. Reference: {ticket_id}. A specialist will contact you within 2-4 hours."
+        }
+
+    @staticmethod
+    def escalate_general_question(reason, question_category, customer_email=None):
+        """
+        Escalate a general question to the General Support team.
+        Routes to standard queue without requiring order context.
+
+        In production, this would:
+        - Create ticket in General Support queue
+        - Route based on question_category to specialized team
+        - Set SLA to 24 hours
+        - Send confirmation email if customer_email provided
+        - Tag with category for analytics
+        """
+        ticket_id = f"TICKET-GEN-{random.randint(1000,9999)}"
+
+        logger.critical(f"API CALL: GENERAL ESCALATION | Category: {question_category} | Ticket: {ticket_id} | Reason: {reason}")
+
+        return {
+            "status": "escalated",
+            "ticket_id": ticket_id,
+            "queue": "general_support",
+            "sla_hours": 24,
+            "category": question_category,
+            "message": f"Your question has been escalated to our support team. Reference: {ticket_id}. You'll receive a response within 24 hours" + (f" at {customer_email}" if customer_email else "") + "."
+        }
 
     @staticmethod
     def check_vip_status(customer_id):
@@ -165,7 +221,7 @@ class EnterpriseServices:
                         "rating": book.get("rating")
                     }
                     for book in purchase_history
-                    if book.get("rating", 0) >= 4
+                    if (book.get("rating") or 0) >= 4
                 ][:3]  # Top 3 highly-rated
 
             return {
@@ -528,7 +584,7 @@ class EnterpriseServices:
         liked_authors = [
             book.get("author")
             for book in purchase_history
-            if book.get("rating", 0) >= 4 and book.get("author")
+            if (book.get("rating") or 0) >= 4 and book.get("author")
         ]
 
         if liked_authors:

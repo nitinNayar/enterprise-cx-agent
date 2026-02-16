@@ -59,7 +59,7 @@ tools_schema: list[dict[str, Any]] = [
     
     {
         "name": "escalate_to_human",
-        "description": "Escalate to human. Use this if a customer is angry or request if out of policy",
+        "description": "DEPRECATED: Use escalate_order_issue or escalate_general_question instead. Escalate to human. Use this if a customer is angry or request if out of policy",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -72,6 +72,54 @@ tools_schema: list[dict[str, Any]] = [
                 }
             },
             "required": ["order_id", "reason", "policy_check_confirmation"]
+        }
+    },
+
+    {
+        "name": "escalate_order_issue",
+        "description": "Escalate an order-related issue to the Order Support team. Use this when customer has an order ID and needs human assistance (angry customer, complex return dispute, delivery problem, VIP exception request, policy denial requiring manager review). This routes to specialized order support with full order context and higher SLA (2-4 hours).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "The customer's order ID (e.g., 'ORD-123'). Required so support team can look up full order history, customer profile, and order context."
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "Clear, detailed explanation of why escalating. Include key context. Examples: 'Customer is angry - delivery delayed 7+ days past estimate', 'VIP Gold customer requesting return exception for read book - precedent DEC-001 found', 'Customer disputing charge - claims book arrived damaged but no photo provided'"
+                },
+                "policy_check_confirmation": {
+                    "type": "string",
+                    "description": "Confirms you've verified this legitimately requires escalation. Always use 'verified_compliant'.",
+                    "enum": ["verified_compliant"]
+                }
+            },
+            "required": ["order_id", "reason", "policy_check_confirmation"]
+        }
+    },
+
+    {
+        "name": "escalate_general_question",
+        "description": "Escalate a general question or account issue to the General Support team. Use this for non-order-related questions that you cannot answer (complex policy questions not in FAQs, account access problems, technical website issues, specific shipping questions like 'shipping to India'). This routes to general support queue with standard SLA (24 hours).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "description": "Clear explanation of what customer needs help with and why you cannot answer. Examples: 'Customer asking about shipping policy to India - not covered in policy document', 'Account password reset failing - customer tried 3 times', 'Technical issue - payment page not loading in Safari browser', 'Customer wants to know if we ship perishable items - not in FAQ'"
+                },
+                "question_category": {
+                    "type": "string",
+                    "enum": ["policy_question", "account_issue", "technical_problem", "shipping_inquiry", "other"],
+                    "description": "Category of the general question for proper routing to specialized support agent"
+                },
+                "customer_email": {
+                    "type": "string",
+                    "description": "Customer's email address if they provided it (for follow-up). Optional but helpful for support team to contact customer."
+                }
+            },
+            "required": ["reason", "question_category"]
         }
     },
 

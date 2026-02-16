@@ -41,11 +41,12 @@
     "ORD-888": {
       "status": "delivered",
       "items": ["\"Complete Sherlock Holmes Collection\" (Leather-bound gift set)"],
-      "eligible_for_return": true,
+      "eligible_for_return": false,
+      "return_reason": "window_expired",
       "customer_sentiment": "neutral",
       "customer_id": "CUST-REG-0888",
       "customer_name": "Jack Ryan",
-      "notes": "Holiday gift purchased in December, now 39 days since purchase"
+      "notes": "Holiday gift purchased in December, now 39 days since purchase (outside 30-day window)"
     },
     "ORD-555": {
       "status": "delivered",

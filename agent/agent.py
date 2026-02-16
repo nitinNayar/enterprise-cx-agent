@@ -293,6 +293,52 @@ class SupportAgent:
                             rationale=tool_input.get("reason")
                         )
 
+                    elif tool_name == "escalate_order_issue":
+                        result = EnterpriseServices.escalate_order_issue(
+                            order_id=tool_input.get("order_id"),
+                            reason=tool_input.get("reason"),
+                            policy_check_confirmation=tool_input.get("policy_check_confirmation")
+                        )
+
+                        # Log tool result
+                        audit_logger.info(
+                            f"Order issue escalated for {tool_input.get('order_id')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'order_id': tool_input.get('order_id'),
+                                'escalation_reason': tool_input.get('reason'),
+                                'ticket_id': result.get('ticket_id') if result else None,
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
+                        # Record escalation to audit ledger
+                        EnterpriseServices.record_decision_to_ledger(
+                            order_id=tool_input.get("order_id"),
+                            agent_decision="ESCALATE_ORDER",
+                            rationale=tool_input.get("reason")
+                        )
+
+                    elif tool_name == "escalate_general_question":
+                        result = EnterpriseServices.escalate_general_question(
+                            reason=tool_input.get("reason"),
+                            question_category=tool_input.get("question_category"),
+                            customer_email=tool_input.get("customer_email")
+                        )
+
+                        # Log tool result
+                        audit_logger.info(
+                            f"General question escalated: {tool_input.get('question_category')}",
+                            extra={
+                                'session_id': self.session_id,
+                                'tool_name': tool_name,
+                                'question_category': tool_input.get('question_category'),
+                                'ticket_id': result.get('ticket_id') if result else None,
+                                'event_type': 'TOOL_RESULT'
+                            }
+                        )
+
                     elif tool_name == "check_vip_status":
                         result = EnterpriseServices.check_vip_status(tool_input.get("customer_id"))
 

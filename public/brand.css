@@ -55,10 +55,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Override any Chainlit default colors on headings in dark mode */
+/* Support both OS dark mode AND Chainlit's manual dark mode toggle */
 @media (prefers-color-scheme: dark) {
   h1, h2, h3, h4, h5, h6 {
     color: #f9fafb !important;
   }
+}
+
+/* Chainlit manual dark mode toggle (using data attribute) */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: #f9fafb !important;
+}
+
+/* Chainlit manual dark mode toggle (using class) */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #f9fafb !important;
 }
 
 /* ============================================
@@ -209,6 +230,7 @@ button:hover, .button:hover {
 
 /* ============================================
    DARK MODE SUPPORT
+   Supports both OS dark mode AND Chainlit's manual dark mode toggle
    ============================================ */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -287,6 +309,92 @@ button:hover, .button:hover {
 }
 
 /* ============================================
+   CHAINLIT MANUAL DARK MODE SUPPORT
+   Same rules as above but for Chainlit's manual toggle
+   ============================================ */
+[data-theme="dark"],
+.dark {
+  --brand-background: #111827;
+  --brand-surface: #1f2937;
+  --brand-text-primary: #f9fafb;
+  --brand-text-secondary: #9ca3af;
+  --brand-border: #374151;
+}
+
+[data-theme="dark"] body,
+.dark body {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+/* Ensure ALL headings are visible in manual dark mode */
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3,
+[data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] h6,
+[data-theme="dark"] .message h1, [data-theme="dark"] .message h2, [data-theme="dark"] .message h3,
+[data-theme="dark"] .message h4, [data-theme="dark"] .message h5, [data-theme="dark"] .message h6,
+[data-theme="dark"] div h1, [data-theme="dark"] div h2, [data-theme="dark"] div h3,
+[data-theme="dark"] div h4, [data-theme="dark"] div h5, [data-theme="dark"] div h6,
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+.dark .message h1, .dark .message h2, .dark .message h3,
+.dark .message h4, .dark .message h5, .dark .message h6,
+.dark div h1, .dark div h2, .dark div h3, .dark div h4, .dark div h5, .dark div h6 {
+  color: #f3f4f6 !important;
+}
+
+/* Markdown content */
+[data-theme="dark"] .markdown h1, [data-theme="dark"] .markdown h2, [data-theme="dark"] .markdown h3,
+[data-theme="dark"] .markdown h4, [data-theme="dark"] .markdown h5, [data-theme="dark"] .markdown h6,
+.dark .markdown h1, .dark .markdown h2, .dark .markdown h3,
+.dark .markdown h4, .dark .markdown h5, .dark .markdown h6 {
+  color: #f3f4f6 !important;
+}
+
+/* Code blocks */
+[data-theme="dark"] code,
+.dark code {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+}
+
+[data-theme="dark"] pre code,
+.dark pre code {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+
+/* Links */
+[data-theme="dark"] a,
+.dark a {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] a:hover,
+.dark a:hover {
+  color: #93c5fd;
+}
+
+/* Blockquotes */
+[data-theme="dark"] blockquote,
+.dark blockquote {
+  border-left: 4px solid #374151;
+  color: #d1d5db;
+}
+
+/* Strong/bold text */
+[data-theme="dark"] strong, [data-theme="dark"] b,
+.dark strong, .dark b {
+  color: #f9fafb;
+}
+
+/* Paragraphs */
+[data-theme="dark"] p,
+.dark p {
+  color: #e5e7eb;
+}
+
+/* ============================================
    CUSTOM SCROLLBAR
    ============================================ */
 ::-webkit-scrollbar {
@@ -318,6 +426,36 @@ button:hover, .button:hover {
   .sidebar {
     width: 100%;
   }
+}
+
+/* ============================================
+   HIDE DARK MODE TOGGLE
+   Removes the theme switcher from the UI to force light mode only
+   ============================================ */
+
+/* Hide theme toggle button in settings/header */
+/* Chainlit uses different selectors depending on version - target them all */
+button[aria-label*="theme" i],
+button[aria-label*="dark" i],
+button[aria-label*="light" i],
+button[title*="theme" i],
+button[title*="dark" i],
+button[title*="light" i],
+[class*="theme" i][class*="toggle" i],
+[class*="ThemeToggle" i],
+[id*="theme-toggle" i],
+[id*="themeToggle" i],
+/* Also target MUI IconButton that might be the toggle */
+button:has(svg[data-testid*="Brightness" i]),
+button:has(svg[data-testid*="DarkMode" i]),
+button:has(svg[data-testid*="LightMode" i]) {
+  display: none !important;
+}
+
+/* Hide from settings panel if it appears there */
+[class*="settings" i] button[aria-label*="theme" i],
+[class*="settings" i] [class*="theme" i] {
+  display: none !important;
 }
 
 /* ============================================

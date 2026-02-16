@@ -6,8 +6,9 @@ mypy
 # simplified graph db
 kuzu
  
-# Observability Stack 
+# Observability Stack
 arize-phoenix
+arize-otel
 openinference-instrumentation-anthropic
 opentelemetry-sdk
 opentelemetry-exporter-otlp 
