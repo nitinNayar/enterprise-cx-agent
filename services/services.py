@@ -1,6 +1,7 @@
 import logging
 import random
 import os
+import re
 import kuzu
 from datetime import datetime
 from typing import Any
@@ -14,7 +15,7 @@ audit_logger = logging.getLogger("DecisionAudit")
 
 class EnterpriseServices:
     """
-    Simulates Core Enterprise Integrations / API with 
+    Simulates Core Enterprise Integrations / API with
     structured logging
     """
 
@@ -42,8 +43,55 @@ class EnterpriseServices:
         print(f"⚠️  WARNING: Graph DB not found at {DB_PATH}. Run scripts/init_graph.py")
 
     @staticmethod
+    def _normalize_order_id(order_id: str) -> str:
+        """
+        Normalize order ID to canonical format for robust lookup.
+
+        Handles common user input variations:
+        - Case insensitive: "ord-123" → "ORD-123"
+        - Delimiter flexible: "ORD_123" / "ORD:123" / "ORD 123" → "ORD-123"
+        - No delimiter: "ORD123" → "ORD-123"
+        - Whitespace tolerant: " ORD-123 " → "ORD-123"
+        - Internal spaces: "ord 123" → "ORD-123"
+
+        Args:
+            order_id: Raw order ID from user input
+
+        Returns:
+            Normalized order ID in format "ORD-XXX"
+        """
+        if not order_id:
+            return order_id
+
+        # Strip leading/trailing whitespace and convert to uppercase
+        normalized = order_id.strip().upper()
+
+        # Replace various delimiters with hyphens
+        # Handle: underscores, spaces, colons, dots, etc.
+        normalized = normalized.replace('_', '-')
+        normalized = normalized.replace(' ', '-')
+        normalized = normalized.replace(':', '-')
+        normalized = normalized.replace('.', '-')
+
+        # Clean up multiple consecutive hyphens (e.g., "ORD--123" → "ORD-123")
+        while '--' in normalized:
+            normalized = normalized.replace('--', '-')
+
+        # Handle no-delimiter case: insert hyphen between letters and digits
+        # e.g., "ORD123" → "ORD-123"
+        # Use regex to find letter-to-digit boundary and insert hyphen
+        normalized = re.sub(r'([A-Z]+)(\d+)', r'\1-\2', normalized)
+
+        return normalized
+
+    @staticmethod
     def look_up_order(order_id):
-        logger.info(f"API CALL: Querying OMS for Order ID: {order_id}")
+        original_input = order_id
+
+        # Normalize order ID for robust lookup
+        order_id = EnterpriseServices._normalize_order_id(order_id)
+
+        logger.info(f"API CALL: Querying OMS for Order ID: {order_id} (original input: {original_input})")
 
         # Use mock order database loaded from JSON file
         result = MOCK_ORDERS.get(order_id)
@@ -51,23 +99,33 @@ class EnterpriseServices:
             logger.info(f"API SUCCESS: Order found: {order_id} | Status: {result['status']}")
             return result
         else:
-            logger.warning(f"API FAIL: Order lookup failed: {order_id}")
+            logger.warning(f"API FAIL: Order lookup failed: {order_id} (original: {original_input})")
             return {"error": "Order ID not found in system."}
 
     @staticmethod
     def execute_refund(order_id, reason):
-        logger.info(f"API CALL: Initiating Refund | Order: {order_id} | Reason: {reason}")
-        
+        original_input = order_id
+
+        # Normalize order ID for robust processing
+        order_id = EnterpriseServices._normalize_order_id(order_id)
+
+        logger.info(f"API CALL: Initiating Refund | Order: {order_id} (original input: {original_input}) | Reason: {reason}")
+
         # Simulate Transaction
         return {
-            "status": "success", 
-            "transaction_id": f"txn_{random.randint(10000,99999)}", 
+            "status": "success",
+            "transaction_id": f"txn_{random.randint(10000,99999)}",
             "message": "Refund processed to original payment method."
         }
 
     @staticmethod
     def escalate_to_human(order_id, reason):
-        logger.critical(f"API CALL: ESCALATION TRIGGERED | Order: {order_id} | Reason: {reason}")
+        original_input = order_id
+
+        # Normalize order ID for robust processing
+        order_id = EnterpriseServices._normalize_order_id(order_id)
+
+        logger.critical(f"API CALL: ESCALATION TRIGGERED | Order: {order_id} (original input: {original_input}) | Reason: {reason}")
         return {"status": "escalated", "ticket_id": f"TKT-{random.randint(100,999)}", "message": "Agent requested human intervention."}
 
     @staticmethod
@@ -764,9 +822,15 @@ class EnterpriseServices:
         Returns:
             dict with complete exchange details including both transactions
         """
+        original_input = original_order_id
+
+        # Normalize order ID for robust processing
+        original_order_id = EnterpriseServices._normalize_order_id(original_order_id)
+
         logger.info(
             f"EXCHANGE: Processing automatic exchange | "
-            f"Original Order: {original_order_id} | New Book: {new_book_id} ({new_book_title})"
+            f"Original Order: {original_order_id} (original input: {original_input}) | "
+            f"New Book: {new_book_id} ({new_book_title})"
         )
 
         # Get original order details

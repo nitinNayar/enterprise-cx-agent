@@ -69,10 +69,57 @@ header {
   border-bottom: 1px solid var(--brand-border);
 }
 
-/* Logo styling */
-.logo img {
-  max-height: 40px;
-  width: auto;
+/* Logo styling - AGGRESSIVE SELECTORS with high specificity */
+.logo img,
+header .logo img,
+nav .logo img,
+div.logo img,
+a.logo img,
+[class*="logo"] img,
+img[src*="Bookly"],
+img[alt*="logo"],
+img[alt*="Logo"] {
+  max-height: 80px !important;  /* Increased size with !important */
+  max-width: 200px !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  border-radius: 0 !important;  /* SQUARE SHAPE - Remove circular styling */
+}
+
+/* Remove circular styling from logo containers */
+.logo,
+[class*="logo"],
+a[class*="logo"],
+div[class*="logo"] {
+  border-radius: 0 !important;  /* SQUARE SHAPE for containers */
+}
+
+/* Welcome screen logo (center logo on home page) - AGGRESSIVE */
+#welcome-screen img,
+.welcome-screen img,
+[class*="welcomeScreen"] img,
+[class*="WelcomeScreen"] img,
+div[class*="welcome"] img[src*="Bookly"],
+body > div > div > div > div > img[src*="Bookly"],
+main img[src*="Bookly"],
+img[src*="Bookly_Light"],
+img[src*="Bookly_dark"] {
+  max-height: 150px !important;  /* Much larger for welcome screen */
+  max-width: 300px !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  margin-bottom: 1.5rem !important;
+  border-radius: 0 !important;  /* SQUARE SHAPE - No rounded corners */
+}
+
+/* Remove circular styling from welcome screen containers */
+#welcome-screen,
+.welcome-screen,
+[class*="welcomeScreen"],
+[class*="WelcomeScreen"] {
+  border-radius: 0 !important;
 }
 
 /* ============================================
@@ -311,8 +358,25 @@ button:hover, .button:hover {
    RESPONSIVE DESIGN
    ============================================ */
 @media (max-width: 768px) {
-  .logo img {
-    max-height: 32px;
+  /* Mobile logo - still larger than default */
+  .logo img,
+  header .logo img,
+  [class*="logo"] img,
+  img[src*="Bookly"] {
+    max-height: 60px !important;  /* Increased for better mobile visibility */
+    max-width: 150px !important;
+    border-radius: 0 !important;  /* Keep square on mobile */
+  }
+
+  /* Welcome screen logo remains larger on mobile */
+  #welcome-screen img,
+  .welcome-screen img,
+  [class*="welcomeScreen"] img,
+  img[src*="Bookly_Light"],
+  img[src*="Bookly_dark"] {
+    max-height: 120px !important;
+    max-width: 250px !important;
+    border-radius: 0 !important;  /* Keep square on mobile */
   }
 
   .sidebar {
@@ -398,4 +462,73 @@ a:hover {
   font-weight: 500;
   background-color: var(--brand-primary-light);
   color: var(--brand-primary);
+}
+
+/* ============================================
+   LOGO SIZE & SHAPE OVERRIDE - CATCH ALL
+   High specificity rules to ensure logo size and square shape
+   ============================================ */
+
+/* Target ANY image with Bookly in the filename */
+img[src*="/public/Bookly"],
+img[src*="Bookly_Light"],
+img[src*="Bookly_dark"],
+img[src*="logo"],
+img[src*="Logo"] {
+  max-height: 80px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  border-radius: 0 !important;  /* FORCE SQUARE SHAPE */
+  clip-path: none !important;   /* Remove any circular clipping */
+}
+
+/* Specifically target welcome/landing page logos */
+body > div:first-child img[src*="Bookly"],
+main > div:first-child img[src*="Bookly"] {
+  max-height: 150px !important;
+  width: auto !important;
+  border-radius: 0 !important;  /* FORCE SQUARE SHAPE */
+  clip-path: none !important;   /* Remove any circular clipping */
+}
+
+/* Remove rounded corners from ALL avatar/logo components */
+[class*="avatar"],
+[class*="Avatar"],
+[class*="MuiAvatar"] {
+  border-radius: 0 !important;  /* Make all avatar components square */
+}
+
+[class*="avatar"] img,
+[class*="Avatar"] img,
+[class*="MuiAvatar"] img {
+  border-radius: 0 !important;  /* Make avatar images square */
+}
+
+/* ============================================
+   HIDE CHAT PROFILE ICONS IN DROPDOWN
+   Remove logo images from profile selector
+   ============================================ */
+
+/* Hide images in chat profile cards */
+.chat-profile-card img,
+[class*="chatProfile"] img,
+[class*="ChatProfile"] img,
+[class*="profile"] img[src*="Bookly"],
+div[class*="profile"] img,
+button[class*="profile"] img {
+  display: none !important;  /* Hide profile dropdown logos */
+}
+
+/* Hide profile selector avatar/icons */
+[class*="profileSelector"] img,
+[class*="ProfileSelector"] img,
+[class*="profile-selector"] img {
+  display: none !important;
+}
+
+/* Adjust spacing since images are hidden */
+.chat-profile-card,
+[class*="chatProfile"],
+[class*="ChatProfile"] {
+  padding-left: 1rem !important;  /* Adjust padding without image */
 }

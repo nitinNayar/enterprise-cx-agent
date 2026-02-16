@@ -24,13 +24,13 @@ async def chat_profile() -> list[cl.ChatProfile]:
     return [
         cl.ChatProfile(
             name="Bookly Support",
-            markdown_description="Talk to our AI assistant for help with orders, returns, and bookshop questions.",
-            icon="/public/Bookly_Light.png"
+            markdown_description="Talk to our AI assistant for help with orders, returns, and bookshop questions."
+            # icon parameter removed - text-only display
         ),
         cl.ChatProfile(
             name="Bookly Admin",
-            markdown_description="**Admin Only**: View decision traces for any customer session. Enter a session ID to investigate agent decisions and precedent usage.",
-            icon="/public/Bookly_Light.png"
+            markdown_description="**Admin Only**: View decision traces for any customer session. Enter a session ID to investigate agent decisions and precedent usage."
+            # icon parameter removed - text-only display
         )
     ]
 
