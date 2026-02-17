@@ -6,6 +6,10 @@ from admin.decision_reviewer import handle_admin_query
 from router.router import QuestionRouter, QuestionCategory
 from typing import Any
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables FIRST (before anything that uses them)
+load_dotenv()
 
 # Initialize Logging FIRST (before anything else)
 audit_logger = setup_logging()
