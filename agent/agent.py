@@ -8,6 +8,7 @@ from tools.tools import tools_schema
 from config import Config
 from logging_config import get_session_id, set_session_id
 from prompts import get_prompt_for_category, get_tools_for_category
+from openinference.instrumentation import using_attributes
 
 logger = logging.getLogger("Claude Agent")
 audit_logger = logging.getLogger("DecisionAudit")
@@ -24,13 +25,14 @@ class SupportAgent:
         self.precedent_used = None  # Track if precedent was used in this conversation
     
 
-    def run(self, user_input, category=None):
+    def run(self, user_input, category=None, user_id=None):
         """
         Executes the main agent loop with optional category-specific optimization.
 
         Args:
             user_input: The user's message/question
             category: Optional QuestionCategory enum for specialized handling
+            user_id: Optional user identifier for cross-session tracking in Arize
 
         Handles:
         1. User Input -> Claude (with category-specific prompt and tools)
@@ -86,14 +88,31 @@ class SupportAgent:
         while True:
 
             # Call Claude with current history and category-specific configuration
-            response = self.client.messages.create(
-                model=Config.MODEL_NAME,
-                max_tokens=Config.MAX_TOKENS,
-                temperature=Config.TEMPERATURE,
-                system=system_prompt,  # <-- Category-specific prompt
-                messages=self.messages,
-                tools=filtered_tools  # <-- Category-specific tools
-            )
+            # Wrap with OpenInference session context for Arize tracking
+            # This enables session grouping in Arize UI for full conversation analysis
+            attributes_dict = {
+                "session_id": self.session_id,
+                "metadata": {
+                    "category": category.value if category else "default",
+                    "num_tools": len(filtered_tools),
+                    "conversation_turn": len([m for m in self.messages if m["role"] == "user"]),
+                    "model": Config.MODEL_NAME
+                }
+            }
+
+            # Add user_id if provided (for cross-session user tracking in Arize)
+            if user_id:
+                attributes_dict["user_id"] = user_id
+
+            with using_attributes(**attributes_dict):
+                response = self.client.messages.create(
+                    model=Config.MODEL_NAME,
+                    max_tokens=Config.MAX_TOKENS,
+                    temperature=Config.TEMPERATURE,
+                    system=system_prompt,  # <-- Category-specific prompt
+                    messages=self.messages,
+                    tools=filtered_tools  # <-- Category-specific tools
+                )
 
             # Debug: See exactly what Claude is thinking/doing
             logger.debug("Full API Response:\n%s", json.dumps(response.__dict__, indent=2, default=str)) 

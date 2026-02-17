@@ -43,6 +43,13 @@ async def start() -> None:
     # Get selected profile from session
     chat_profile: str | None = cl.user_session.get("chat_profile")
 
+    # Capture Chainlit user for Arize session tracking (if authenticated)
+    user = cl.user_session.get("user")
+    if user:
+        user_id = getattr(user, 'identifier', None) or getattr(user, 'id', None)
+        cl.user_session.set("user_id", user_id)
+        logger.info(f"User authenticated: {user_id}")
+
     if chat_profile == "Bookly Admin":
         # Admin mode: Store profile flag and send instructions
         cl.user_session.set("mode", "admin")
@@ -86,6 +93,16 @@ async def main(message: cl.Message) -> None:
         # Customer support mode with question routing
         agent: Any = cl.user_session.get("agent")
         router: QuestionRouter = cl.user_session.get("router")
+        user_id: str | None = cl.user_session.get("user_id")  # For Arize session tracking
+
+        # Ensure agent has a session_id for Arize tracking (before router call)
+        # This ensures router classification and agent calls share the same session
+        if not agent.session_id:
+            import uuid
+            agent.session_id = f"SESSION-{uuid.uuid4().hex[:8]}"
+            from logging_config import set_session_id
+            set_session_id(agent.session_id)
+            logger.info(f"Generated session ID for conversation: {agent.session_id}")
 
         # Send an empty message to show the "Thinking" state
         msg: cl.Message = cl.Message(content="")
@@ -120,8 +137,13 @@ async def main(message: cl.Message) -> None:
 
             if should_reclassify:
                 # Classify the question using the router
+                # Pass session_id and user_id for Arize session tracking
                 logger.info(f"Routing question: {message.content[:100]}...")
-                category = router.classify_question(message.content)
+                category = router.classify_question(
+                    message.content,
+                    session_id=agent.session_id,
+                    user_id=user_id
+                )
                 category_desc = router.get_category_description(category)
 
                 logger.info(f"Question classified as: {category.value} - {category_desc}")
@@ -150,21 +172,21 @@ async def main(message: cl.Message) -> None:
             if category == QuestionCategory.ORDER_STATUS:
                 # Order tracking: focused on delivery and tracking
                 logger.info("Routing to ORDER_STATUS handler with specialized prompt and tools")
-                response = agent.run(message.content, category=category)
+                response = agent.run(message.content, category=category, user_id=user_id)
 
             elif category == QuestionCategory.RETURNS_REFUNDS:
                 # Returns/refunds: full agent with all tools and complex workflow
                 logger.info("Routing to RETURNS_REFUNDS handler with full agent capabilities")
-                response = agent.run(message.content, category=category)
+                response = agent.run(message.content, category=category, user_id=user_id)
 
             elif category == QuestionCategory.GENERAL:
                 # General questions: focused on policy documents and information
                 logger.info("Routing to GENERAL handler with policy-focused tools")
-                response = agent.run(message.content, category=category)
+                response = agent.run(message.content, category=category, user_id=user_id)
             else:
                 # Fallback (should not reach here)
                 logger.warning(f"Unknown category: {category}, using default configuration")
-                response = agent.run(message.content)
+                response = agent.run(message.content, user_id=user_id)
 
             # Step 3: Update the UI with the final response
             msg.content = response

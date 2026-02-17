@@ -13,6 +13,7 @@ import anthropic
 import logging
 from enum import Enum
 from config import Config
+from openinference.instrumentation import using_attributes
 
 logger = logging.getLogger("QuestionRouter")
 
@@ -92,12 +93,14 @@ Response: GENERAL"""
         )
         logger.info(f"QuestionRouter initialized with model: {self.ROUTER_MODEL}")
 
-    def classify_question(self, user_message: str) -> QuestionCategory:
+    def classify_question(self, user_message: str, session_id: str = None, user_id: str = None) -> QuestionCategory:
         """
         Classify a user question into one of the three categories.
 
         Args:
             user_message: The user's question text
+            session_id: Optional session ID for Arize tracking
+            user_id: Optional user ID for Arize tracking
 
         Returns:
             QuestionCategory enum value
@@ -112,17 +115,44 @@ Response: GENERAL"""
         try:
             logger.info(f"Classifying question: {user_message[:100]}...")
 
+            # Prepare session attributes for Arize tracking
+            attributes_dict = {}
+            if session_id:
+                attributes_dict["session_id"] = session_id
+                attributes_dict["metadata"] = {
+                    "model": self.ROUTER_MODEL,
+                    "operation": "question_classification",
+                    "router": "QuestionRouter"
+                }
+                if user_id:
+                    attributes_dict["user_id"] = user_id
+
             # Call Claude Haiku for classification
-            response = self.client.messages.create(
-                model=self.ROUTER_MODEL,
-                max_tokens=self.MAX_TOKENS,
-                temperature=self.TEMPERATURE,
-                system=self.SYSTEM_PROMPT,
-                messages=[{
-                    "role": "user",
-                    "content": user_message
-                }]
-            )
+            # Wrap with OpenInference session context if session_id provided
+            if attributes_dict:
+                with using_attributes(**attributes_dict):
+                    response = self.client.messages.create(
+                        model=self.ROUTER_MODEL,
+                        max_tokens=self.MAX_TOKENS,
+                        temperature=self.TEMPERATURE,
+                        system=self.SYSTEM_PROMPT,
+                        messages=[{
+                            "role": "user",
+                            "content": user_message
+                        }]
+                    )
+            else:
+                # No session tracking
+                response = self.client.messages.create(
+                    model=self.ROUTER_MODEL,
+                    max_tokens=self.MAX_TOKENS,
+                    temperature=self.TEMPERATURE,
+                    system=self.SYSTEM_PROMPT,
+                    messages=[{
+                        "role": "user",
+                        "content": user_message
+                    }]
+                )
 
             # Extract the classification result
             classification = response.content[0].text.strip().upper()
@@ -151,7 +181,7 @@ Response: GENERAL"""
             logger.warning("Classification failed, defaulting to GENERAL")
             return QuestionCategory.GENERAL
 
-    def classify_with_confidence(self, user_message: str) -> tuple[QuestionCategory, float]:
+    def classify_with_confidence(self, user_message: str, session_id: str = None, user_id: str = None) -> tuple[QuestionCategory, float]:
         """
         Classify a question and return confidence score.
 
@@ -160,11 +190,13 @@ Response: GENERAL"""
 
         Args:
             user_message: The user's question text
+            session_id: Optional session ID for Arize tracking
+            user_id: Optional user ID for Arize tracking
 
         Returns:
             Tuple of (QuestionCategory, confidence_score)
         """
-        category = self.classify_question(user_message)
+        category = self.classify_question(user_message, session_id=session_id, user_id=user_id)
         # Future enhancement: extract actual confidence from model
         return category, 1.0
 
