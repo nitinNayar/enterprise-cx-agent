@@ -248,21 +248,6 @@ OAuth 2.0/SAML for SSO, RBAC (customer/agent/manager/auditor roles), JWT tokens,
 ### 3. Database Migration
 Migrate from embedded Kùzu to Neo4j Enterprise (scalable graph with causal clustering) or PostgreSQL with pgvector (hybrid relational + graph). Implement connection pooling and read replicas for precedent queries.
 
-### 4. Observability & Monitoring
-Deploy Arize Phoenix Cloud for production tracing, centralized logging (ELK/Datadog), metrics & alerting (latency p95 < 10s, error rate < 1%, escalation rate < 15%), custom dashboards for agent performance and cost tracking.
-
-### 5. Scalability
-Containerize with Docker, deploy on Kubernetes with auto-scaling, convert to async API calls, implement Redis caching (policies, VIP status, catalog), NGINX load balancing with session affinity.
-
-### 6. Testing & Quality Assurance
-Expand to 80%+ unit test coverage, create golden dataset (100+ test cases) for LLM evaluation, automated policy compliance tests (99%+ target), load testing (1000+ concurrent users), chaos engineering for circuit breaker validation.
-
-### 7. CI/CD Pipeline
-GitHub Actions: lint → test → build Docker image → deploy to staging → smoke tests → blue-green deployment to production. Infrastructure as Code (Terraform/CloudFormation), feature flags for gradual rollout, automated rollback on error spikes.
-
-### 8. Compliance & Governance
-GDPR Article 22 compliance (right to explanation for automated decisions), CCPA data deletion workflows, AI safety (content moderation, bias testing), immutable audit logs with 7-year retention for financial transactions, quarterly compliance audits.
-
 *(Detailed technical specifications in DESIGN_DOCUMENT.md)*
 
 ---
