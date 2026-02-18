@@ -1,5 +1,4 @@
 # Enterprise CX Agent - Design Document
-**Nitin Nayar | Decagon AI Solutions Engineer Application**
 
 ---
 
