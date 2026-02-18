@@ -134,10 +134,12 @@ flowchart TD
     F{"Customer accepts<br/>exchange?"}
     G["process_exchange()<br/><em>Single-transaction: return + new order</em>"]
     H["execute_order_return()<br/><em>Standard refund</em>"]
+    I["escalate_order_issue()<br/><em>Immediate escalation</em>"]
 
     A --> B
     B --> C
     C -->|YES| D
+    C -->|NO - angry| I
     D --> E
     E --> F
     F -->|YES| G
@@ -151,6 +153,7 @@ flowchart TD
     style F fill:#1a3a4a,stroke:#4a9eca,stroke-width:2px,color:#fff
     style G fill:#2a4a2a,stroke:#4a8a4a,stroke-width:2px,color:#fff
     style H fill:#4a2a2a,stroke:#8a4a4a,stroke-width:2px,color:#fff
+    style I fill:#4a2a2a,stroke:#8a4a4a,stroke-width:2px,color:#fff
 ```
 
 ### 3-Tier Recommendation Algorithm
@@ -392,7 +395,7 @@ Use these inputs to test **Question Routing**, **Guardrails**, **Tool Use**, **C
 
 ---
 
-### 4. Recommendation Engine & Exchange (New)
+### 4. Recommendation Engine & Exchange
 
 **Scenario I: The Upsell Exchange**
 
@@ -446,6 +449,7 @@ Switch to the **Bookly Admin** chat profile and enter a Session ID (format: `SES
 | `process_exchange` | Returns | Return + new order in a single transaction |
 | `escalate_order_issue` | Orders, Returns | Order Support team (2–4 hr SLA) |
 | `escalate_general_question` | General | General Support team (24 hr SLA) |
+| `escalate_to_human` | All | Legacy generic escalation fallback |
 
 ---
 
@@ -455,15 +459,16 @@ Switch to the **Bookly Admin** chat profile and enter a Session ID (format: `SES
 enterprise-cx-agent/
 ├── app.py                          # Chainlit entry point, chat profiles, routing
 ├── config.py                       # Model settings (Sonnet 4.5, temp=0)
-├── prompts.py                      # Category-specific system prompts (~900 lines)
+├── prompts.py                      # Category-specific system prompts (~940 lines)
 ├── logging_config.py               # Dual logging (console + JSON audit)
+├── SETUP_INSTRUCTIONS.md           # Environment setup guide
 │
 ├── agent/
 │   └── agent.py                    # SupportAgent — ReAct loop, Arize session context
 ├── router/
 │   └── router.py                   # QuestionRouter — Haiku classification
 ├── tools/
-│   └── tools.py                    # Tool schema definitions (10 tools)
+│   └── tools.py                    # Tool schema definitions (11 tools)
 ├── services/
 │   └── services.py                 # All backend service implementations
 ├── observability/
@@ -474,14 +479,18 @@ enterprise-cx-agent/
 ├── data/
 │   ├── context_graph_db/           # Kùzu embedded graph (precedents)
 │   ├── mock_orders.json
+│   ├── mock_customers.json
 │   ├── mock_customers_enhanced.json  # Customers with reading preferences
 │   ├── mock_books_catalog.json       # Book catalog for recommendations
+│   ├── decision_emails/              # Sample decision email templates
 │   └── data_loader.py
 │
 ├── policies/
 │   ├── return_policy.md
 │   ├── shipping_policy.md
-│   └── privacy_policy.md
+│   ├── privacy_policy.md
+│   ├── faq.md
+│   └── password_reset.md
 │
 ├── scripts/
 │   └── init_graph.py               # Seed Kùzu DB with exception precedents
@@ -501,7 +510,7 @@ enterprise-cx-agent/
 │   ├── AGENT_DESIGN_DOCUMENT.md
 │   ├── TECHNICAL_OVERVIEW.md
 │   ├── DEMO_GUIDE.md
-│   └── SETUP_INSTRUCTIONS.md
+│   └── ...                         # Implementation notes and bug fix guides
 │
 ├── logs/
 │   └── decision_audit.log          # JSON-formatted audit events (JSONL)
