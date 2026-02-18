@@ -8,7 +8,7 @@
 
 * Short 2 minute video walking through the Application architecture: https://www.loom.com/share/1911d2bf8e874f5daa47af5e2ba44a9e
 * Short 5 minute video walking through 4 Demo Scenarios: https://enterprise-cx-agent-production-857c.up.railway.app/
-* Short 2 minute video walking through ADMIN view and how the precendence based checks work: https://www.loom.com/share/dd190bdb136b442baedb6c869f33b12e 
+* Short 2 minute video walking through ADMIN view and how the precedence based checks work: https://www.loom.com/share/dd190bdb136b442baedb6c869f33b12e 
 * Short 2 minute video walking through OTEL based LLM Observability using Arize AXfor the return + book recommendation use case: : https://www.loom.com/share/079cca8f2f06432296b35a66b1ff6fee
 
 
