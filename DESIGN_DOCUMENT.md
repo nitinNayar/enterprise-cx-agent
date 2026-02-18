@@ -340,7 +340,7 @@ COMPLIANCE: ✅ VIP check performed, precedent correctly applied
    - **Cost Optimization Dashboard:**
      - Daily LLM spend
      - Cost per conversation (target: < $0.15)
-     - Haiku vs Sonnet usage ratio (95:5 ideal)
+     - Routing overhead as % of total token spend (target: < 5%)
 
 **Technical Implementation:**
 - **File:** `observability/tracing.py`
@@ -550,13 +550,14 @@ User Input
   - `ORDER_STATUS` - Order tracking, delivery status
   - `RETURNS_REFUNDS` - Returns, refunds, exchanges
   - `GENERAL` - Policies, account help, FAQs
-- **Cost Savings:** 95% reduction in routing overhead ($0.15/1M vs $3/1M tokens)
+- **Cost Efficiency:** 95% cheaper for the routing classification step ($0.15/1M vs $3/1M tokens); agent reasoning still uses Sonnet for every conversation
 
 #### 2. **Support Agent** (`agent/agent.py`)
 - **Pattern:** ReAct loop (Reason → Act → Observe)
 - **State Management:** Stateless service layer - all state in conversation history
-- **Session Tracking:** Unique `SESSION-{uuid}` for audit traceability
-- **Tool Orchestration:** 10 specialized tools with category-specific availability
+- **Session Tracking:** Unique `SESSION-{uuid.hex[:8]}` (e.g., `SESSION-a7b3c4d1`) for audit traceability
+- **Tool Orchestration:** 10 active tools with category-specific availability (`escalate_to_human` is deprecated; use `escalate_order_issue` or `escalate_general_question`)
+- **Prompt Source:** `prompts.py` defines the three active category-specific prompts; `config.py` retains a legacy `SYSTEM_PROMPT` for backward compatibility
 
 #### 3. **Tool Layer** (`tools/tools.py` + `services/services.py`)
 **Available Tools:**
@@ -594,7 +595,7 @@ User Input
 **Solution:** Three enforcement layers:
 1. **System Prompt:** Explicit override protocols in natural language
 2. **Policy Documents:** Markdown files with `ACTION: REJECT/APPROVE` directives
-3. **Tool Constraints:** Mandatory arguments like `policy_check_confirmation`
+3. **Tool Constraints:** `execute_order_return()` requires a mandatory `reason` argument (agent must state the compliance justification before executing the refund); `escalate_order_issue()` requires `policy_check_confirmation: "verified_compliant"` to confirm escalation is legitimate
 
 **Example:** Even if database says `eligible_for_return: true`, agent enforces policy if item is:
 - Digital goods (e-books after download)
@@ -762,224 +763,83 @@ GOVERNANCE RULES:
 
 ## Changes to Make This Production-Ready
 
-### 1. **Service Integration Layer**
-**Current State:** Mock JSON data in `data/` folder
+### 1. **Service Integration**
+**Current:** Mock JSON data in `data/` folder
 
-**Production Changes:**
-- Replace `services/services.py` mock functions with real API clients:
-  - Order Management System (OMS) API
-  - Customer Relationship Management (CRM) API - Salesforce, HubSpot
-  - Payment Gateway - Stripe, Braintree
-  - Ticketing System - Zendesk, Intercom
-  - Inventory Management System
-- Implement retry logic with exponential backoff
-- Add circuit breakers for service degradation
-- Cache frequently accessed data (customer profiles, policy docs) with TTL
+**Production:** Replace `services/services.py` mock functions with real API clients — OMS, CRM (Salesforce/HubSpot), payment gateway (Stripe/Braintree), ticketing system (Zendesk/Intercom). Add retry logic with exponential backoff, circuit breakers for service degradation, and Redis caching for policy docs (TTL 1hr), VIP status (TTL 5min), and book catalog (TTL 1 day).
 
 ### 2. **Authentication & Authorization**
-**Current State:** Chainlit default auth (no production security)
+**Current:** Chainlit default auth (no production security)
 
-**Production Changes:**
-- Implement OAuth 2.0 / SAML for SSO
-- Role-Based Access Control (RBAC):
-  - `customer` - Chat interface
-  - `agent` - Admin dashboard (decision viewer)
-  - `manager` - Precedent approval system
-  - `auditor` - Read-only audit log access
-- JWT tokens for API authentication
-- Rate limiting per user/session (prevent abuse)
+**Production:** OAuth 2.0/SAML SSO with RBAC:
+- `customer` — Chat interface only
+- `manager` — Chainlit Admin (decision viewer + precedent approval)
+- `auditor` — Read-only audit log access
+- `engineer` — Phoenix Cloud access (prompts, tokens, costs)
+
+JWT tokens, rate limiting per session, PII redaction in all audit logs.
 
 ### 3. **Database Migration**
-**Current State:** Embedded Kùzu database (single-process)
+**Current:** Embedded Kùzu (single-process, no clustering)
 
-**Production Changes:**
-- **Option 1:** Migrate to Neo4j Enterprise (scalable graph DB)
-  - Multi-node cluster
-  - Causal clustering for high availability
-  - ACID transactions
-- **Option 2:** PostgreSQL with pgvector extension
-  - Hybrid: Relational tables + graph queries via recursive CTEs
-  - Better ops team familiarity
-- Implement database connection pooling
-- Add read replicas for precedent queries (99% read workload)
+**Production:** Neo4j Enterprise (causal clustering, ACID, multi-node HA) or PostgreSQL with pgvector (hybrid relational + graph via recursive CTEs). Add connection pooling and read replicas — precedent queries are ~99% read workload.
 
 ### 4. **Observability & Monitoring**
-**Current State:** Local Phoenix UI, basic JSONL logging
+**Current:** Arize Phoenix Cloud already configured; JSONL audit logging in `logs/decision_audit.log`
 
-**Production Changes:**
-- Deploy Arize Phoenix Cloud (production tracing)
-- Centralized logging: ELK Stack (Elasticsearch, Logstash, Kibana) or Datadog
-- Metrics & Alerting:
-  - **SLIs:** Response latency (p50, p95, p99), error rate, escalation rate
-  - **Alerts:**
-    - Latency > 10s (p95)
-    - Error rate > 1%
-    - Escalation rate > 15% (indicates policy/precedent gaps)
-    - Anthropic API quota exhaustion
-- Custom dashboards:
-  - **Agent Performance:** Resolution rate, avg turns per conversation, tool usage patterns
-  - **Business Metrics:** VIP exceptions granted, revenue at risk (returns), customer sentiment distribution
-  - **Cost Tracking:** LLM token usage by category, daily spend vs budget
+**Production:** Centralized log aggregation (ELK Stack or Datadog), alerting on:
+- p95 latency > 10s
+- Error rate > 1%
+- Escalation rate > 15% (indicates policy/precedent gaps)
+- Anthropic API quota exhaustion
+
+Custom dashboards: agent resolution rate by category, VIP exception approval rate, cost per conversation, routing overhead as % of total token spend.
 
 ### 5. **Scalability & Performance**
-**Current State:** Single-process Chainlit app
+**Current:** Single-process Chainlit app
 
-**Production Changes:**
-- **Horizontal Scaling:**
-  - Containerize with Docker
-  - Deploy on Kubernetes with auto-scaling (HPA)
-  - Target: 100 concurrent conversations per pod
-- **Async Processing:**
-  - Convert synchronous API calls to async/await (aiohttp)
-  - Implement streaming responses for better UX
-- **Caching Layer:**
-  - Redis for:
-    - Policy documents (TTL: 1 hour, invalidate on update)
-    - Customer VIP status (TTL: 5 minutes)
-    - Book catalog (TTL: 1 day)
-  - Precedent query cache (TTL: 1 hour)
-- **Load Balancing:**
-  - NGINX or AWS ALB for traffic distribution
-  - Session affinity (sticky sessions) for conversation continuity
+**Production:**
+- Containerize with Docker, deploy on Kubernetes with HPA (target: 100 concurrent conversations/pod)
+- Convert synchronous service calls to `async/await`, stream responses for better perceived latency
+- Session affinity (sticky sessions) to preserve in-memory conversation state across load-balanced pods
 
 ### 6. **Security Hardening**
-**Current State:** Development environment, no security measures
+**Current:** Development environment, no security measures
 
-**Production Changes:**
-- **Data Protection:**
-  - Encrypt sensitive data at rest (AES-256)
-  - TLS 1.3 for all API communication
-  - PII redaction in logs (mask email, phone, credit card numbers)
-- **Compliance:**
-  - GDPR compliance: Right to deletion, data export
-  - PCI DSS if handling payment data
-  - SOC 2 Type II audit trail requirements
-- **Input Validation:**
-  - Sanitize user inputs (prevent injection attacks)
-  - Content filtering (detect and block malicious prompts)
-- **API Security:**
-  - API key rotation policy (90 days)
-  - Secrets management: AWS Secrets Manager, HashiCorp Vault
-  - Network segmentation (VPC, security groups)
+**Production:** AES-256 encryption at rest, TLS 1.3, input sanitization against prompt injection, content filtering for malicious prompts, API key rotation every 90 days, secrets management (AWS Secrets Manager / HashiCorp Vault), GDPR/PCI DSS/SOC 2 compliance.
 
-### 7. **Testing & Quality Assurance**
-**Current State:** 9 test files, manual testing
+### 7. **Testing & LLM Evaluation**
+**Current:** 9 test files covering unit, integration, and timing scenarios
 
-**Production Changes:**
-- **Expand Test Coverage:**
-  - Unit tests: Target 80%+ coverage
-  - Integration tests: Full workflow scenarios with real API mocks
-  - E2E tests: Selenium/Playwright for UI testing
-- **LLM Evaluation:**
-  - Golden dataset: 100+ test cases with expected behaviors
-  - Automated evals:
-    - Policy compliance rate (target: 99%+)
-    - Escalation accuracy (target: 95%+)
-    - VIP exception correctness (target: 100%)
-    - Sentiment detection recall (target: 90%+)
-  - Weekly regression testing on model updates
-- **Load Testing:**
-  - Use Locust or k6 to simulate 1000+ concurrent users
-  - Identify bottlenecks (database queries, LLM latency)
-- **Chaos Engineering:**
-  - Test circuit breakers (kill OMS API, verify graceful degradation)
-  - Database failover testing
+**Production:**
+- 80%+ unit test coverage; integration tests with real API mocks; E2E tests (Playwright)
+- Golden dataset: 100+ cases with expected decisions for automated policy compliance evaluation (target: 99%+), escalation accuracy (95%+), VIP exception correctness (100%)
+- Load testing with Locust/k6 (1000+ concurrent users); chaos engineering for circuit breaker validation
 
 ### 8. **Human-in-the-Loop Workflows**
-**Current State:** Precedents pre-populated in graph DB
+**Current:** Precedents pre-populated in graph DB; no live precedent creation
 
-**Production Changes:**
-- **Precedent Approval System:**
-  - When agent encounters novel scenario without precedent:
-    1. Auto-escalate to manager queue
-    2. Manager reviews context + agent's proposed decision
-    3. Manager approves/denies with reasoning
-    4. System creates new precedent in graph (auto-expires in 1 year)
-- **Decision Review Dashboard:**
-  - Managers audit random 5% of agent decisions weekly
-  - Flag incorrect decisions → trigger model fine-tuning
-  - Quarterly policy review based on escalation patterns
-- **Feedback Loop:**
-  - Post-conversation surveys (CSAT, NPS)
-  - Track: "Did the agent resolve your issue?" (target: 85%+)
-  - Feed negative feedback into training dataset
+**Production:**
+- Novel edge cases auto-escalate to manager queue → Manager approves/denies → System creates new precedent in graph (auto-expires after 1 year)
+- Managers audit 5% of decisions weekly; incorrect decisions feed back into prompt refinement
+- Post-conversation CSAT/NPS surveys (target: 85%+ resolution rate); negative feedback feeds training dataset
 
 ### 9. **Cost Optimization**
-**Current State:** Dual-model routing (95% savings on classification)
+**Current:** Dual-model routing (95% cheaper for the routing classification step; Sonnet handles all reasoning)
 
-**Production Changes:**
-- **Prompt Optimization:**
-  - Compress system prompts (remove redundancy)
-  - Use Claude's prompt caching (50% cost reduction on repeated context)
-- **Model Selection:**
-  - A/B test: Haiku vs Sonnet for simple returns (Haiku may suffice)
-  - Use Opus 4.6 only for complex VIP exceptions (< 5% of requests)
-- **Tool Calling Optimization:**
-  - Batch tool calls where possible (get_customer_info + look_up_order in parallel)
-  - Implement tool result caching (same order ID queried twice in session)
-- **Traffic Shaping:**
-  - Implement request queuing during peak hours
-  - Offer async email responses for non-urgent queries (reduces concurrent load)
+**Production:**
+- Use Claude's prompt caching for repeated system prompt context (up to 50% cost reduction)
+- A/B test Haiku vs Sonnet for simple ORDER_STATUS queries; reserve Opus 4.6 for complex VIP exceptions only
+- Cache tool results within a session (`look_up_order` result reused if order_id queried again); `get_customer_info` must always be called after `look_up_order` (sequential, not parallel — requires `customer_id` from order result)
 
-### 10. **Deployment & CI/CD**
-**Current State:** Manual startup with Python scripts
+### 10. **CI/CD & Compliance**
+**Current:** Manual `python` startup; basic audit logging
 
-**Production Changes:**
-- **CI/CD Pipeline:**
-  - GitHub Actions or GitLab CI:
-    1. Lint (flake8, black)
-    2. Run tests (pytest)
-    3. Build Docker image
-    4. Push to container registry (ECR, GCR)
-    5. Deploy to staging
-    6. Run smoke tests
-    7. Deploy to production (blue-green deployment)
-- **Infrastructure as Code:**
-  - Terraform or CloudFormation for AWS resources
-  - Helm charts for Kubernetes deployments
-- **Feature Flags:**
-  - LaunchDarkly or custom system
-  - Gradual rollout of new features (5% → 25% → 100%)
-  - Kill switch for problematic features
-- **Rollback Strategy:**
-  - Keep last 3 versions deployable
-  - Automated rollback on error rate spike (> 5%)
-
-### 11. **Documentation & Onboarding**
-**Current State:** README + inline comments
-
-**Production Changes:**
-- **Runbooks:**
-  - Incident response: "Agent is hallucinating policies" → Rollback + alert AI team
-  - Escalation: "Customer complains on Twitter" → Notify PR team + manager override
-- **Agent Tuning Guide:**
-  - How to add new tools
-  - How to modify system prompts
-  - How to create precedents
-- **API Documentation:**
-  - OpenAPI spec for all service endpoints
-  - Example requests/responses
-- **Training Materials:**
-  - Video walkthrough for support managers
-  - Decision review dashboard tutorial
-
-### 12. **Compliance & Governance**
-**Current State:** Basic audit logging
-
-**Production Changes:**
-- **Regulatory Compliance:**
-  - GDPR Article 22: Right to explanation for automated decisions
-    - Every denial includes human-readable reasoning
-    - Option to request human review
-  - CCPA: Data deletion workflow
-- **AI Safety:**
-  - Content moderation: Block offensive/discriminatory responses
-  - Bias testing: Ensure VIP exceptions don't discriminate by protected class
-  - Transparency: Disclose AI usage to customers ("You're chatting with an AI assistant...")
-- **Audit Trail:**
-  - Immutable log storage (WORM - Write Once Read Many)
-  - 7-year retention for financial transactions (legal requirement)
-  - Regular compliance audits (quarterly)
+**Production:**
+- GitHub Actions pipeline: lint → test → Docker build → staging deploy → smoke tests → blue-green production deploy; automated rollback on error rate spike (> 5%)
+- GDPR Article 22 (right to explanation for automated decisions), CCPA data deletion workflows
+- Immutable WORM audit logs with 7-year retention for financial transactions
+- AI transparency: disclose AI usage to customers; bias testing to ensure VIP exceptions don't discriminate by protected class; quarterly compliance audits
 
 ---
 
@@ -991,7 +851,7 @@ This Enterprise CX Agent demonstrates production-grade AI system design with:
 - ✅ **Deterministic Governance:** Tri-layered policy enforcement prevents hallucinations
 - ✅ **Intelligent Escalation:** Sentiment-driven routing prioritizes customer satisfaction
 - ✅ **Adaptability:** Precedent-based exceptions with human oversight
-- ✅ **Cost Efficiency:** Dual-model architecture (95% savings on routing)
+- ✅ **Cost Efficiency:** Dual-model architecture (95% cheaper routing classification step; Sonnet handles all reasoning)
 - ✅ **Full Auditability:** OpenTelemetry tracing + structured logging
 - ✅ **Personalization:** VIP recognition, reading preferences, loyalty acknowledgment
 

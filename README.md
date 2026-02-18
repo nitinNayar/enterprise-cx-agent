@@ -76,7 +76,7 @@ graph TD
 
 * **Category-Specific Prompts & Tools:** Each question category receives a dedicated system prompt and a filtered subset of tools, reducing token usage and improving accuracy.
 
-* **Book Recommendation Engine & Upsell Motion (New):** When a customer initiates a return, the agent proactively offers personalized book recommendations *before* processing the refund, creating an upsell opportunity:
+* **Book Recommendation Engine & Upsell Motion:** When a customer initiates a return, the agent proactively offers personalized book recommendations *before* processing the refund, creating an upsell opportunity:
   * **3-Tier Algorithm:** (1) Books by authors the customer rated 4+ stars, (2) top-rated books in favorite genres, (3) popular books in similar genres.
   * **Tier-Based Discounts:** Silver 10%, Gold 15%, Platinum 25% off.
   * **Automatic Exchange:** Single-transaction tool (`process_exchange`) handles return + new order simultaneously, including price difference settlement and VIP benefits.
@@ -92,7 +92,7 @@ graph TD
 
 * **Recursive Re-Act Loop:** The Agent runs inside a continuous `while` loop, allowing it to chain multiple reasoning steps (e.g., *Check Policy* → *Consult Graph* → *Execute Refund*) in a single turn without "getting stuck."
 
-* **Dual Escalation Routing (New):** Two specialized escalation tools replace the old generic `escalate_to_human`:
+* **Dual Escalation Routing:** Two specialized escalation tools supplement the generic `escalate_to_human`:
   * `escalate_order_issue` — Routes to Order Support with 2–4 hour SLA (used when there is an order ID in context).
   * `escalate_general_question` — Routes to General Support with 24-hour SLA (used for policy, account, or technical questions).
 
@@ -100,75 +100,17 @@ graph TD
 
 ---
 
-## 🎯 Question Routing System
+## 🎯 Question Routing
 
-### Overview
+Every incoming message is classified by Haiku into one of three categories before the Sonnet agent handles it. Each category gets a dedicated system prompt and filtered tool set.
 
-Bookly implements a two-tier AI architecture that optimizes for both cost and performance:
+| Category | Example inputs |
+|----------|---------------|
+| `ORDER_STATUS` | "Where is my order?", "Has my package shipped?" |
+| `RETURNS_REFUNDS` | "I want to return this book", "How do I get a refund?" |
+| `GENERAL` | "What's your shipping policy?", "Do you sell audiobooks?", "How do I reset my password?" |
 
-```mermaid
-flowchart TD
-    UserQ["User Question"]
-    Router["Router: Claude Haiku 4.5<br/><em>Fast, Cheap Classification — $0.15 / 1M tokens</em>"]
-    Category["Category Determination"]
-    OS["ORDER_STATUS"]
-    RR["RETURNS_REFUNDS"]
-    GEN["GENERAL"]
-    Agent["Agent: Claude Sonnet 4.5<br/><em>Complex Reasoning — $3 / 1M tokens</em>"]
-
-    UserQ --> Router
-    Router --> Category
-    Category --> OS
-    Category --> RR
-    Category --> GEN
-    OS --> Agent
-    RR --> Agent
-    GEN --> Agent
-
-    style UserQ   fill:#333,stroke:#aaa,color:#fff
-    style Router  fill:#1a3a4a,stroke:#4a9eca,stroke-width:2px,color:#fff
-    style Category fill:#333,stroke:#aaa,color:#fff
-    style OS      fill:#2a4a2a,stroke:#4a8a4a,stroke-width:2px,color:#fff
-    style RR      fill:#2a4a2a,stroke:#4a8a4a,stroke-width:2px,color:#fff
-    style GEN     fill:#2a4a2a,stroke:#4a8a4a,stroke-width:2px,color:#fff
-    style Agent   fill:#2b5e82,stroke:#fff,stroke-width:2px,color:#fff
-```
-
-### How It Works
-
-**Step 1: Classification (Haiku)**
-Every incoming question is classified into one of three categories:
-
-1. **ORDER_STATUS**
-   - "Where is my order?"
-   - "Has my package shipped?"
-   - "Track order ORD-123"
-
-2. **RETURNS_REFUNDS**
-   - "I want to return this book"
-   - "How do I get a refund?"
-   - "Process a return for order ORD-456"
-
-3. **GENERAL**
-   - "What's your shipping policy?"
-   - "How do I reset my password?"
-   - "Do you sell audiobooks?"
-
-**Step 2: Specialized Handling (Sonnet)**
-Each category receives:
-- A dedicated system prompt with category-specific workflow instructions
-- A filtered tool set (only tools relevant to the category are exposed)
-- Category-specific escalation routing
-
-### Implementation
-
-Router module: `router/router.py`
-
-Key components:
-- `QuestionRouter` class — Main classification engine using Claude Haiku 4.5
-- `QuestionCategory` enum — Three category types
-- Session context integration for Arize tracking
-- Integration with `app.py` for automatic routing on every message turn
+Router: `router/router.py` — `QuestionRouter` class, `QuestionCategory` enum.
 
 ---
 
@@ -550,6 +492,7 @@ enterprise-cx-agent/
 │   ├── test_specialized_routing.py
 │   ├── test_decision_ledger.py
 │   ├── test_complete_workflow.py
+│   ├── test_new_schema.py
 │   ├── test_order_id_normalization.py
 │   ├── test_return_reason_mandatory.py
 │   └── test_timing_validation.py
@@ -583,6 +526,7 @@ Key test suites:
 | `test_specialized_routing.py` | Category-specific tool and prompt selection |
 | `test_decision_ledger.py` | Audit log event capture and attribution |
 | `test_complete_workflow.py` | End-to-end return workflow |
+| `test_new_schema.py` | Updated data schema validation |
 | `test_order_id_normalization.py` | "ORD 123", "ord_123", etc. → "ORD-123" |
 | `test_return_reason_mandatory.py` | Return reason validation before refund |
 | `test_timing_validation.py` | 30-day return window enforcement |

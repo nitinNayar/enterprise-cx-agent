@@ -37,9 +37,9 @@ User Input → Question Router (Haiku) → Categorize (ORDER_STATUS | RETURNS_RE
 ```
 
 **Core Components:**
-- **Question Router:** Cost-optimized classifier (95% savings: $0.15/1M vs $3/1M tokens)
-- **Support Agent:** ReAct loop with stateless service layer, session tracking via unique `SESSION-{uuid}`
-- **Tool Layer:** 10 specialized tools calling mock services (order lookup, VIP checks, precedent queries, escalation, recommendations)
+- **Question Router:** Cost-optimized classifier — 95% cheaper for the routing classification step ($0.15/1M vs $3/1M tokens); every conversation still uses Sonnet for reasoning
+- **Support Agent:** ReAct loop with stateless service layer, session tracking via unique `SESSION-{uuid.hex[:8]}`. Note: `config.py` retains a legacy `SYSTEM_PROMPT` for backward compatibility; `prompts.py` is the active source for all three category-specific prompts.
+- **Tool Layer:** 10 active tools calling mock services (order lookup, VIP checks, precedent queries, escalation, recommendations); `escalate_to_human()` is deprecated — use `escalate_order_issue()` or `escalate_general_question()` instead
 - **Precedent System:** Graph database (Person → Decision → Tags) for human-approved exception patterns
 - **Observability:** OpenTelemetry tracing with session grouping, JSONL audit logs
 
@@ -55,7 +55,7 @@ Every user message is first classified by a lightweight router into one of three
 - **RETURNS_REFUNDS** - Return requests, refund inquiries, exchanges
 - **GENERAL** - Policy questions, account help, FAQs
 
-The router uses a specialized prompt with examples for each category, running at temp=0.0 for deterministic classification. This costs ~$0.15/1M tokens vs $3/1M for Sonnet (95% savings).
+The router uses a specialized prompt with examples for each category, running at temp=0.0 for deterministic classification. This costs ~$0.15/1M tokens vs $3/1M for Sonnet — 95% cheaper for the classification step specifically; agent reasoning still uses Sonnet for every conversation.
 
 **Step 2: Category-Specific System Prompts**
 Based on the router's classification, the Support Agent loads one of three specialized prompts. Each prompt contains:
@@ -78,15 +78,16 @@ The agent uses Claude's native tool-calling capability with a **ReAct loop** (Re
 
 When a user says *"I want to return order ORD-123"*, the agent follows this decision logic:
 
-**Turn 1 - Information Gathering (Action):**
-- Agent reasoning: "I need order details and customer information"
-- Returns: `tool_use` blocks for `look_up_order("ORD-123")` and `get_customer_info()`
-- System executes tools, adds results to conversation history
+**Turn 1 - Order Lookup (Action):**
+- Agent reasoning: "I need the order details first — `customer_id` comes from the order record"
+- Returns: `tool_use` block for `look_up_order("ORD-123")`
+- System executes tool, returns `{customer_id: "CUST-VIP-0001", item: "Die Hard Signed Edition", days_since_purchase: 5, eligible_for_return: true}`
 
-**Turn 2 - Missing Information (Ask Follow-Up):**
-- Agent receives: Order = "Die Hard Signed Edition", Customer = "John McClane (VIP Gold)", Reading preferences = {favorite_authors: ["Lee Child"], favorite_genres: ["Action", "Thriller"]}
-- Agent reasoning: "Item is signed edition, need to know if opened"
-- Returns: `end_turn` with message: *"Hello John! Thank you for 5 years as a Gold member. Is the book still in its original sealed condition?"*
+**Turn 2 - Customer Info & Personalized Greeting (Action + Ask):**
+- Agent reasoning: "I now have `customer_id`. Fetch customer profile then greet with item details and ask the policy-relevant question"
+- Returns: `tool_use` block for `get_customer_info("CUST-VIP-0001")`
+- Agent receives: `{name: "John McClane", is_vip: true, tier: "Gold", years_active: 5, reading_preferences: {favorite_authors: ["Lee Child"], favorite_genres: ["Action", "Thriller"]}}`
+- Returns: `end_turn` with *"Hello John! Thank you for 5 years as a Gold member. I can help with your return for the Die Hard Signed Edition. Is the book still in its original sealed condition?"*
 
 **Turn 3 - Policy Check & Upsell Opportunity (Action):**
 - User: *"Yes, it's unopened"*
@@ -129,7 +130,7 @@ When a user says *"I want to return order ORD-123"*, the agent follows this deci
 Even if database returns `eligible_for_return: true`, the agent enforces policy through:
 1. System prompt explicit rules (*"NEVER approve digital goods after download"*)
 2. Policy documents with ACTION directives (*"ACTION: REJECT - Digital goods are final sale"*)
-3. Tool constraints (`execute_order_return()` requires `policy_check_confirmation` argument)
+3. Tool constraints: `execute_order_return()` requires a mandatory `reason` argument (agent must state the compliance justification before executing the refund); `escalate_order_issue()` requires `policy_check_confirmation: "verified_compliant"` before routing to human support
 
 This prevents the agent from bypassing business rules based solely on database flags.
 
@@ -169,7 +170,7 @@ The agent cannot "interpret" policies creatively - ACTION directives are explici
 Even if the database returns `eligible_for_return: true`, the agent enforces three layers:
 - **Layer 1 (System Prompt):** "NEVER approve digital goods returns after download"
 - **Layer 2 (Policy Documents):** "ACTION: REJECT - Digital goods are final sale"
-- **Layer 3 (Tool Constraints):** `execute_order_return()` requires `policy_check_confirmation` argument describing which policy was verified
+- **Layer 3 (Tool Constraints):** `execute_order_return()` requires a mandatory `reason` argument (agent must state the compliance justification); `escalate_order_issue()` requires `policy_check_confirmation: "verified_compliant"` before routing to human support
 
 This prevents the agent from trusting database flags alone (databases can have stale/incorrect data).
 
@@ -273,7 +274,7 @@ This Enterprise CX Agent solves the "Black Box" problem in production AI systems
 **Core Strengths:**
 - **Deterministic Governance:** Tri-layered enforcement prevents policy hallucinations
 - **Intelligent Automation:** Precedent-based exceptions reduce human escalations by 30%
-- **Cost Efficiency:** Dual-model routing saves 95% on classification overhead
+- **Cost Efficiency:** Dual-model routing — 95% cheaper for the routing classification step ($0.15/1M vs $3/1M tokens)
 - **Revenue Retention:** AI-powered upsell engine converts 30%+ of returns to exchanges
 - **Full Auditability:** OpenTelemetry tracing + structured logging for compliance
 
