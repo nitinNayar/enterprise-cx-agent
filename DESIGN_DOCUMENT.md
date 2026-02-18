@@ -831,7 +831,15 @@ Custom dashboards: agent resolution rate by category, VIP exception approval rat
 - A/B test Haiku vs Sonnet for simple ORDER_STATUS queries; reserve Opus 4.6 for complex VIP exceptions only
 - Cache tool results within a session (`look_up_order` result reused if order_id queried again); `get_customer_info` must always be called after `look_up_order` (sequential, not parallel — requires `customer_id` from order result)
 
-### 10. **CI/CD & Compliance**
+### 10. **Recommendation Engine**
+**Current:** Static `mock_books_catalog.json`; 3-tier rule-based algorithm (authors → genres → popularity)
+
+**Production:**
+- Replace static catalog with a live data pipeline: a background agent continuously ingests customer interactions (purchases, ratings, exchanges, returns) and updates preference profiles in real time
+- Move to a vector embedding store (pgvector or Pinecone) for semantic book matching — enabling collaborative filtering that improves with every transaction rather than relying on hand-coded preference rules
+- Track exchange outcomes (accepted / declined / returned again) as a feedback signal to retrain recommendation weights over time
+
+### 11. **CI/CD & Compliance**
 **Current:** Manual `python` startup; basic audit logging
 
 **Production:**

@@ -247,6 +247,9 @@ OAuth 2.0/SAML for SSO, RBAC (customer/agent/manager/auditor roles), JWT tokens,
 ### 3. Database Migration
 Migrate from embedded Kùzu to Neo4j Enterprise (scalable graph with causal clustering) or PostgreSQL with pgvector (hybrid relational + graph). Implement connection pooling and read replicas for precedent queries.
 
+### 4. Recommendation Engine
+Replace the static `mock_books_catalog.json` with a live data pipeline: a background agent that continuously ingests customer interactions (purchases, ratings, exchanges, returns) and updates preference profiles in real time. Move beyond the current 3-tier rule-based algorithm to a vector embedding store (pgvector or Pinecone) for semantic book matching, enabling collaborative filtering that improves with every transaction rather than relying on hand-coded preference rules.
+
 *(Detailed technical specifications in DESIGN_DOCUMENT.md)*
 
 ---
