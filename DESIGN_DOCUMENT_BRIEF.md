@@ -250,6 +250,9 @@ Migrate from embedded Kùzu to Neo4j Enterprise (scalable graph with causal clus
 ### 4. Recommendation Engine
 Replace the static `mock_books_catalog.json` with a live data pipeline: a background agent that continuously ingests customer interactions (purchases, ratings, exchanges, returns) and updates preference profiles in real time. Move beyond the current 3-tier rule-based algorithm to a vector embedding store (pgvector or Pinecone) for semantic book matching, enabling collaborative filtering that improves with every transaction rather than relying on hand-coded preference rules.
 
+### 5. Live Precedent Capture
+Replace the static pre-seeded graph DB with a long-running background process that monitors actual manager approvals across existing workflows (Zendesk ticket resolutions, Slack approval threads, CRM override logs) and automatically extracts decision context — outcome, conditions, authority level, and relevant tags — writing each new precedent directly into the graph. This closes the feedback loop: every manual exception a manager approves today becomes a precedent the agent can apply autonomously tomorrow, continuously reducing escalation rates without requiring manual graph maintenance.
+
 *(Detailed technical specifications in DESIGN_DOCUMENT.md)*
 
 ---

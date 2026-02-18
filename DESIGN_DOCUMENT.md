@@ -839,7 +839,15 @@ Custom dashboards: agent resolution rate by category, VIP exception approval rat
 - Move to a vector embedding store (pgvector or Pinecone) for semantic book matching — enabling collaborative filtering that improves with every transaction rather than relying on hand-coded preference rules
 - Track exchange outcomes (accepted / declined / returned again) as a feedback signal to retrain recommendation weights over time
 
-### 11. **CI/CD & Compliance**
+### 11. **Live Precedent Capture**
+**Current:** Static pre-seeded Kùzu graph (DEC-001 through DEC-010); new precedents require manual graph writes
+
+**Production:**
+- Deploy a long-running background process that monitors real manager approval workflows — Zendesk ticket resolutions, Slack approval threads, CRM override logs — and automatically extracts decision context (outcome, conditions, authority level, tags) to write new precedents into the graph
+- Every manual exception a manager approves today becomes a precedent the agent can apply autonomously tomorrow, continuously reducing escalation rates without requiring manual graph maintenance
+- Apply automatic expiry (1-year TTL), confidence scoring, and deduplication before committing each new precedent to prevent stale or conflicting rules
+
+### 12. **CI/CD & Compliance**
 **Current:** Manual `python` startup; basic audit logging
 
 **Production:**
