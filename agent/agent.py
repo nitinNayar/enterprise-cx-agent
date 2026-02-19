@@ -307,7 +307,7 @@ class SupportAgent:
                         # 1. Customer must have provided a reason (not empty / too short).
                         # 2. Policy must have been evaluated first.
                         reason = tool_input.get("reason", "")
-                        if not reason or len(reason.strip()) < 5:
+                        if not reason or not reason.strip():
                             result = {
                                 "error": "reason_required",
                                 "message": "A return reason from the customer is required. Please ask the customer why they want to return the item before processing."
@@ -490,7 +490,7 @@ class SupportAgent:
                         # CODE GATE: Same enforcement as execute_order_return, applied to the
                         # exchange path. Note: this tool uses "return_reason" not "reason".
                         return_reason = tool_input.get("return_reason", "")
-                        if not return_reason or len(return_reason.strip()) < 5:
+                        if not return_reason or not return_reason.strip():
                             result = {
                                 "error": "reason_required",
                                 "message": "A return reason from the customer is required before processing the exchange. Please ask the customer why they want to return the item."
