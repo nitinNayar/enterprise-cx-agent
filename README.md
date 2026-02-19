@@ -120,16 +120,6 @@ The most critical steps in the Returns workflow are now enforced by **code**, no
 | `_runs_after_greeting` | Incremented each `agent.run()` call after greeting | Reset to `0` when `get_customer_info` completes |
 | `_policy_checked` | `get_policy_info` completes successfully | Never (per session) |
 
-### Gates in the ReAct Loop
-
-| Tool | Gate Condition | Block Reason |
-|------|---------------|--------------|
-| `get_policy_info` | `_customer_greeted AND _runs_after_greeting < 1` | Policy check attempted before customer responded to condition question |
-| `execute_order_return` | `reason` missing or < 5 chars | No customer-stated reason provided |
-| `execute_order_return` | `not _policy_checked` | Return attempted before policy was evaluated |
-| `process_exchange` | `return_reason` missing or < 5 chars | No customer-stated reason provided |
-| `process_exchange` | `not _policy_checked` | Exchange attempted before policy was evaluated |
-
 When a gate fires, the tool returns a structured error dict to the LLM (e.g. `{"error": "step_out_of_order", "message": "..."}`) and a `CODE_GATE_TRIGGERED` event is written to `logs/decision_audit.log`. The LLM reads the error, course-corrects, and follows the correct sequence — the gate acts as a hard guardrail without breaking the conversation.
 
 The audit ledger (`record_decision_to_ledger`) is also guarded: it only records an `APPROVE` or `EXCHANGE` decision if the tool call was not blocked, preventing false positive entries in the decision trail.
