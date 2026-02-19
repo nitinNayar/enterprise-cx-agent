@@ -70,6 +70,14 @@ class SupportAgent:
         if self._customer_greeted:
             self._runs_after_greeting += 1
 
+        # Log current gate state so every run() shows enforcement context in CLI
+        logger.info(
+            f"[{self.session_id}] Gate State → "
+            f"greeted={self._customer_greeted} | "
+            f"runs_after_greeting={self._runs_after_greeting} | "
+            f"policy_checked={self._policy_checked}"
+        )
+
         # --- Category-Specific Configuration ---
         # Select system prompt and tools based on category (if provided)
         if category:
@@ -237,9 +245,15 @@ class SupportAgent:
                                     'event_type': 'CODE_GATE_TRIGGERED'
                                 }
                             )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: get_policy_info "
+                                f"| reason=step_out_of_order "
+                                f"| runs_after_greeting={self._runs_after_greeting} (customer has not yet responded)"
+                            )
                         else:
                             result = EnterpriseServices.get_policy_info(tool_input.get("policy_type"))
                             self._policy_checked = True
+                            logger.info(f"[{self.session_id}] Gate Update → _policy_checked=True")
 
                         # Log tool result
                         audit_logger.info(
@@ -307,6 +321,11 @@ class SupportAgent:
                                     'event_type': 'CODE_GATE_TRIGGERED'
                                 }
                             )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: execute_order_return "
+                                f"| reason=reason_required "
+                                f"| reason_provided={repr(reason)}"
+                            )
                         elif not self._policy_checked:
                             result = {
                                 "error": "step_out_of_order",
@@ -319,6 +338,11 @@ class SupportAgent:
                                     'tool_name': tool_name,
                                     'event_type': 'CODE_GATE_TRIGGERED'
                                 }
+                            )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: execute_order_return "
+                                f"| reason=step_out_of_order "
+                                f"| policy_checked={self._policy_checked}"
                             )
                         else:
                             result = EnterpriseServices.execute_refund(tool_input.get("order_id"), reason)
@@ -457,6 +481,10 @@ class SupportAgent:
                         # Flags are set regardless of found/not-found to avoid stuck workflows.
                         self._customer_greeted = True
                         self._runs_after_greeting = 0
+                        logger.info(
+                            f"[{self.session_id}] Gate Update → _customer_greeted=True, _runs_after_greeting=0 "
+                            f"(greeting dispatched — policy gate now active)"
+                        )
 
                     elif tool_name == "process_exchange":
                         # CODE GATE: Same enforcement as execute_order_return, applied to the
@@ -476,6 +504,11 @@ class SupportAgent:
                                     'event_type': 'CODE_GATE_TRIGGERED'
                                 }
                             )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: process_exchange "
+                                f"| reason=reason_required "
+                                f"| return_reason_provided={repr(return_reason)}"
+                            )
                         elif not self._policy_checked:
                             result = {
                                 "error": "step_out_of_order",
@@ -488,6 +521,11 @@ class SupportAgent:
                                     'tool_name': tool_name,
                                     'event_type': 'CODE_GATE_TRIGGERED'
                                 }
+                            )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: process_exchange "
+                                f"| reason=step_out_of_order "
+                                f"| policy_checked={self._policy_checked}"
                             )
                         else:
                             result = EnterpriseServices.process_exchange(
