@@ -4,7 +4,7 @@
 
 ## ⚠️ Disclaimer
 **This repository is for demonstration and interview purposes only.**
-It is designed to showcase architectural patterns (State Machines, Tool Use, Guardrails, Graph RAG, Intelligent Routing, Upsell Motion) rather than production-grade infrastructure. It currently mocks backend services and lacks enterprise security features.
+It is designed to showcase architectural patterns (State Machines, Tool Use, Guardrails, Hybrid Enforcement Gates, Graph RAG, Intelligent Routing, Upsell Motion) rather than production-grade infrastructure. It currently mocks backend services and lacks enterprise security features.
 
 ---
 
@@ -12,7 +12,7 @@ It is designed to showcase architectural patterns (State Machines, Tool Use, Gua
 This project demonstrates how to solve the "Black Box" problem in Generative AI. Instead of a chaotic chatbot, this agent functions as a **State-Based Workflow Engine with Intelligent Routing**. It adheres to a strict Standard Operating Procedure (SOP) to ensure:
 1.  **Determinism:** It follows business logic (e.g., "Check eligibility *before* refunding").
 2.  **Safety:** It detects risk (e.g., angry sentiment) and escalates to humans immediately.
-3.  **Governance:** It enforces complex compliance rules (via Policy-as-Code) that override basic database flags.
+3.  **Governance:** It enforces complex compliance rules at four layers — Prompt, Policy-as-Code, Tool Constraints, and deterministic **Code Gates** that make out-of-order step execution physically impossible to bypass.
 4.  **Adaptability:** It uses a **Context Graph** to apply "Case Law"—allowing nuanced exceptions (e.g., VIPs, Holidays) based on historical human precedents.
 5.  **Intelligent Routing:** It automatically classifies user questions into categories (Order Status, Returns/Refunds, General Questions) for optimized handling.
 6.  **Upsell Motion:** It offers personalized book recommendations during the return workflow, converting returns into exchanges and increasing customer lifetime value.
@@ -85,10 +85,11 @@ graph TD
   * *Problem:* Hard-coded policies (e.g., "No Returns on Opened Books") frustrate VIP customers.
   * *Solution:* The Agent queries the Graph for "Exceptions" (e.g., `VIP + Opened Books`). If a human has approved a similar case in the past, the Agent autonomously grants the exception, citing the precedent.
 
-* **Tri-Layered Governance:** Compliance is enforced at three levels:
-  1. **Prompt:** Explicit "Override Protocol" (Text > Database).
-  2. **Data:** "Active Enforcement" language in Markdown policies (`ACTION: REJECT`).
-  3. **Tool Constraints:** The `execute_order_return` tool requires a mandatory `reason` argument, physically preventing the LLM from calling it without confirming the return rationale.
+* **Four-Layered Governance:** Compliance is enforced at four levels, from soft to hard:
+  1. **Prompt:** Explicit "Override Protocol" instructions in the system prompt (Text > Database).
+  2. **Data:** "Active Enforcement" language in Markdown policy files (`ACTION: REJECT`).
+  3. **Tool Constraints:** The `execute_order_return` and `process_exchange` tools require mandatory arguments (e.g. `reason`, `return_reason`), preventing the LLM from calling them without the required context.
+  4. **Code Gates:** Deterministic checks inserted directly into the ReAct tool dispatch loop in `agent.py`. These checks are invisible to the LLM and cannot be overridden by prompt injection or jailbreaks. Gate triggers are logged with `event_type: CODE_GATE_TRIGGERED` in the structured audit trail.
 
 * **Recursive Re-Act Loop:** The Agent runs inside a continuous `while` loop, allowing it to chain multiple reasoning steps (e.g., *Check Policy* → *Consult Graph* → *Execute Refund*) in a single turn without "getting stuck."
 
@@ -97,6 +98,33 @@ graph TD
   * `escalate_general_question` — Routes to General Support with 24-hour SLA (used for policy, account, or technical questions).
 
 * **Visual Decision Tracing:** Integrated **Arize Phoenix** via **OpenTelemetry** to visualize the agent's "Chain of Thought" as a waterfall chart, with full session tracking in Phoenix Cloud.
+
+---
+
+## 🛡 Hybrid Enforcement Gates
+
+The most critical steps in the Returns workflow are now enforced by **code**, not just prompts. Three boolean flags track workflow state inside `SupportAgent`, and gate checks in the ReAct loop block tool calls that arrive out of order.
+
+### Why Both Layers?
+
+| Layer | Guarantee | Failure Mode |
+|-------|-----------|--------------|
+| Prompt instructions | Strong suggestion | Probabilistic — LLM can skip steps under adversarial input or ambiguous context |
+| Code gates | Deterministic | Cannot be bypassed — runs outside the LLM context window |
+
+### State Flags
+
+| Flag | Set When | Reset When |
+|------|----------|------------|
+| `_customer_greeted` | `get_customer_info` completes | Never (per session) |
+| `_runs_after_greeting` | Incremented each `agent.run()` call after greeting | Reset to `0` when `get_customer_info` completes |
+| `_policy_checked` | `get_policy_info` completes successfully | Never (per session) |
+
+When a gate fires, the tool returns a structured error dict to the LLM (e.g. `{"error": "step_out_of_order", "message": "..."}`) and a `CODE_GATE_TRIGGERED` event is written to `logs/decision_audit.log`. The LLM reads the error, course-corrects, and follows the correct sequence — the gate acts as a hard guardrail without breaking the conversation.
+
+The audit ledger (`record_decision_to_ledger`) is also guarded: it only records an `APPROVE` or `EXCHANGE` decision if the tool call was not blocked, preventing false positive entries in the decision trail.
+
+> **Full architecture rationale:** See [`docs/HYBRID_ENFORCEMENT_ARCHITECTURE.md`](docs/HYBRID_ENFORCEMENT_ARCHITECTURE.md)
 
 ---
 
@@ -410,6 +438,30 @@ Use these inputs to test **Question Routing**, **Guardrails**, **Tool Use**, **C
 
 ---
 
+### 5. Hybrid Enforcement Gates (Code Layer)
+
+**Scenario K: Gate Fires — Policy Skipped**
+
+> *Agent attempts to check policy before the customer has responded to the condition question.*
+
+* **User:** "I want to return ORD-123. I've read the book."
+* **What happens internally:** Agent calls `get_customer_info` (greeting sent → `_customer_greeted = True`, `_runs_after_greeting = 0`). In the **same `agent.run()` call**, the LLM immediately tries to call `get_policy_info`.
+* **Gate triggers:** `_customer_greeted AND _runs_after_greeting < 1` → returns `{"error": "step_out_of_order", ...}`. Audit log records `CODE_GATE_TRIGGERED`.
+* **LLM response to gate:** Reads the error, asks customer about the book's condition first.
+* **Next turn:** Customer confirms condition → `_runs_after_greeting` reaches 1 → `get_policy_info` now passes the gate.
+* **Outcome:** Correct workflow sequence enforced regardless of what the prompt would have done.
+
+**Scenario L: Gate Fires — Return Without Reason**
+
+> *Agent tries to execute a return without a stated reason from the customer.*
+
+* **What happens internally:** Agent calls `execute_order_return` with an empty or trivially short `reason`.
+* **Gate triggers:** `len(reason.strip()) < 5` → returns `{"error": "reason_required", ...}`. Audit log records `CODE_GATE_TRIGGERED`.
+* **LLM response to gate:** Reads the error, asks the customer to state their reason explicitly.
+* **Outcome:** Refund is blocked until a meaningful customer reason is on record.
+
+---
+
 ## 🔬 Inspecting Decisions
 
 ### Phoenix Cloud
@@ -464,7 +516,7 @@ enterprise-cx-agent/
 ├── SETUP_INSTRUCTIONS.md           # Environment setup guide
 │
 ├── agent/
-│   └── agent.py                    # SupportAgent — ReAct loop, Arize session context
+│   └── agent.py                    # SupportAgent — ReAct loop, Hybrid Enforcement Gates, Arize session context
 ├── router/
 │   └── router.py                   # QuestionRouter — Haiku classification
 ├── tools/
@@ -510,6 +562,7 @@ enterprise-cx-agent/
 │   ├── AGENT_DESIGN_DOCUMENT.md
 │   ├── TECHNICAL_OVERVIEW.md
 │   ├── DEMO_GUIDE.md
+│   ├── HYBRID_ENFORCEMENT_ARCHITECTURE.md  # Code gate design, risk analysis, production state machine proposal
 │   └── ...                         # Implementation notes and bug fix guides
 │
 ├── logs/
@@ -537,5 +590,5 @@ Key test suites:
 | `test_complete_workflow.py` | End-to-end return workflow |
 | `test_new_schema.py` | Updated data schema validation |
 | `test_order_id_normalization.py` | "ORD 123", "ord_123", etc. → "ORD-123" |
-| `test_return_reason_mandatory.py` | Return reason validation before refund |
+| `test_return_reason_mandatory.py` | Return reason validation before refund (Code Gate: reason_required) |
 | `test_timing_validation.py` | 30-day return window enforcement |

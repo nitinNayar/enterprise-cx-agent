@@ -23,6 +23,10 @@ class SupportAgent:
         self.messages = [] # conversation history
         self.session_id = None  # Track session for audit logging
         self.precedent_used = None  # Track if precedent was used in this conversation
+        # --- Hybrid enforcement: lightweight code gates for returns workflow ---
+        self._customer_greeted = False    # set when get_customer_info completes
+        self._runs_after_greeting = 0     # increments each run() after greeting sent
+        self._policy_checked = False      # set when get_policy_info completes
     
 
     def run(self, user_input, category=None, user_id=None):
@@ -61,6 +65,18 @@ class SupportAgent:
             )
 
         self.messages.append({"role": "user", "content": user_input})
+
+        # CODE GATE: Track that customer has responded (each run() = one user message)
+        if self._customer_greeted:
+            self._runs_after_greeting += 1
+
+        # Log current gate state so every run() shows enforcement context in CLI
+        logger.info(
+            f"[{self.session_id}] Gate State → "
+            f"greeted={self._customer_greeted} | "
+            f"runs_after_greeting={self._runs_after_greeting} | "
+            f"policy_checked={self._policy_checked}"
+        )
 
         # --- Category-Specific Configuration ---
         # Select system prompt and tools based on category (if provided)
@@ -212,7 +228,32 @@ class SupportAgent:
                         )
 
                     elif tool_name == "get_policy_info":
-                        result = EnterpriseServices.get_policy_info(tool_input.get("policy_type"))
+                        # CODE GATE: Policy check only allowed after customer has responded
+                        # to the condition question. _runs_after_greeting < 1 means we are
+                        # still in the same run() call that sent the greeting — customer
+                        # has not yet replied.
+                        if self._customer_greeted and self._runs_after_greeting < 1:
+                            result = {
+                                "error": "step_out_of_order",
+                                "message": "Please ask the customer about the book's condition and wait for their response before checking the return policy."
+                            }
+                            audit_logger.info(
+                                "CODE GATE: get_policy_info blocked - awaiting customer response to condition question",
+                                extra={
+                                    'session_id': self.session_id,
+                                    'tool_name': tool_name,
+                                    'event_type': 'CODE_GATE_TRIGGERED'
+                                }
+                            )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: get_policy_info "
+                                f"| reason=step_out_of_order "
+                                f"| runs_after_greeting={self._runs_after_greeting} (customer has not yet responded)"
+                            )
+                        else:
+                            result = EnterpriseServices.get_policy_info(tool_input.get("policy_type"))
+                            self._policy_checked = True
+                            logger.info(f"[{self.session_id}] Gate Update → _policy_checked=True")
 
                         # Log tool result
                         audit_logger.info(
@@ -221,7 +262,7 @@ class SupportAgent:
                                 'session_id': self.session_id,
                                 'tool_name': tool_name,
                                 'policy_type': tool_input.get('policy_type'),
-                                'policy_retrieved': bool(result),
+                                'policy_retrieved': bool(result) and not result.get('error'),
                                 'event_type': 'TOOL_RESULT'
                             }
                         )
@@ -262,7 +303,49 @@ class SupportAgent:
                         )
 
                     elif tool_name == "execute_order_return":
-                        result = EnterpriseServices.execute_refund(tool_input.get("order_id"), tool_input.get("reason"))
+                        # CODE GATE: Two checks before processing a return.
+                        # 1. Customer must have provided a reason (not empty / too short).
+                        # 2. Policy must have been evaluated first.
+                        reason = tool_input.get("reason", "")
+                        if not reason or not reason.strip():
+                            result = {
+                                "error": "reason_required",
+                                "message": "A return reason from the customer is required. Please ask the customer why they want to return the item before processing."
+                            }
+                            audit_logger.warning(
+                                "CODE GATE: execute_order_return blocked - no customer reason provided",
+                                extra={
+                                    'session_id': self.session_id,
+                                    'tool_name': tool_name,
+                                    'reason_provided': reason,
+                                    'event_type': 'CODE_GATE_TRIGGERED'
+                                }
+                            )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: execute_order_return "
+                                f"| reason=reason_required "
+                                f"| reason_provided={repr(reason)}"
+                            )
+                        elif not self._policy_checked:
+                            result = {
+                                "error": "step_out_of_order",
+                                "message": "Return policy must be verified before processing the return. Please call get_policy_info first."
+                            }
+                            audit_logger.warning(
+                                "CODE GATE: execute_order_return blocked - policy not yet checked",
+                                extra={
+                                    'session_id': self.session_id,
+                                    'tool_name': tool_name,
+                                    'event_type': 'CODE_GATE_TRIGGERED'
+                                }
+                            )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: execute_order_return "
+                                f"| reason=step_out_of_order "
+                                f"| policy_checked={self._policy_checked}"
+                            )
+                        else:
+                            result = EnterpriseServices.execute_refund(tool_input.get("order_id"), reason)
 
                         # Log tool result
                         audit_logger.info(
@@ -277,17 +360,19 @@ class SupportAgent:
                             }
                         )
 
-                        # Record decision to audit ledger
-                        decision_id = self.precedent_used.get('decision_id') if self.precedent_used else None
-                        person_id = self.precedent_used.get('person_id') if self.precedent_used else None
+                        # Record decision to audit ledger only if return was actually processed
+                        # (not blocked by a code gate)
+                        if result and not result.get("error"):
+                            decision_id = self.precedent_used.get('decision_id') if self.precedent_used else None
+                            person_id = self.precedent_used.get('person_id') if self.precedent_used else None
 
-                        EnterpriseServices.record_decision_to_ledger(
-                            order_id=tool_input.get("order_id"),
-                            agent_decision="APPROVE",
-                            decision_id=decision_id,
-                            person_id=person_id,
-                            rationale=tool_input.get("reason")
-                        )
+                            EnterpriseServices.record_decision_to_ledger(
+                                order_id=tool_input.get("order_id"),
+                                agent_decision="APPROVE",
+                                decision_id=decision_id,
+                                person_id=person_id,
+                                rationale=tool_input.get("reason")
+                            )
 
                     elif tool_name == "escalate_to_human":
                         result = EnterpriseServices.escalate_to_human(tool_input.get("order_id"), tool_input.get("reason"))
@@ -391,45 +476,98 @@ class SupportAgent:
                             }
                         )
 
-                    elif tool_name == "process_exchange":
-                        result = EnterpriseServices.process_exchange(
-                            original_order_id=tool_input.get("original_order_id"),
-                            new_book_id=tool_input.get("new_book_id"),
-                            new_book_title=tool_input.get("new_book_title"),
-                            customer_id=tool_input.get("customer_id"),
-                            return_reason=tool_input.get("return_reason")
+                        # CODE GATE: Greeting has been sent. Reset the response counter so the
+                        # get_policy_info gate knows to wait for the customer's next message.
+                        # Flags are set regardless of found/not-found to avoid stuck workflows.
+                        self._customer_greeted = True
+                        self._runs_after_greeting = 0
+                        logger.info(
+                            f"[{self.session_id}] Gate Update → _customer_greeted=True, _runs_after_greeting=0 "
+                            f"(greeting dispatched — policy gate now active)"
                         )
+
+                    elif tool_name == "process_exchange":
+                        # CODE GATE: Same enforcement as execute_order_return, applied to the
+                        # exchange path. Note: this tool uses "return_reason" not "reason".
+                        return_reason = tool_input.get("return_reason", "")
+                        if not return_reason or not return_reason.strip():
+                            result = {
+                                "error": "reason_required",
+                                "message": "A return reason from the customer is required before processing the exchange. Please ask the customer why they want to return the item."
+                            }
+                            audit_logger.warning(
+                                "CODE GATE: process_exchange blocked - no customer reason provided",
+                                extra={
+                                    'session_id': self.session_id,
+                                    'tool_name': tool_name,
+                                    'reason_provided': return_reason,
+                                    'event_type': 'CODE_GATE_TRIGGERED'
+                                }
+                            )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: process_exchange "
+                                f"| reason=reason_required "
+                                f"| return_reason_provided={repr(return_reason)}"
+                            )
+                        elif not self._policy_checked:
+                            result = {
+                                "error": "step_out_of_order",
+                                "message": "Return policy must be verified before processing the exchange. Please call get_policy_info first."
+                            }
+                            audit_logger.warning(
+                                "CODE GATE: process_exchange blocked - policy not yet checked",
+                                extra={
+                                    'session_id': self.session_id,
+                                    'tool_name': tool_name,
+                                    'event_type': 'CODE_GATE_TRIGGERED'
+                                }
+                            )
+                            logger.warning(
+                                f"[{self.session_id}] CODE GATE BLOCKED: process_exchange "
+                                f"| reason=step_out_of_order "
+                                f"| policy_checked={self._policy_checked}"
+                            )
+                        else:
+                            result = EnterpriseServices.process_exchange(
+                                original_order_id=tool_input.get("original_order_id"),
+                                new_book_id=tool_input.get("new_book_id"),
+                                new_book_title=tool_input.get("new_book_title"),
+                                customer_id=tool_input.get("customer_id"),
+                                return_reason=return_reason
+                            )
 
                         # Log tool result with full exchange details
                         audit_logger.info(
-                            f"Exchange processed: {tool_input.get('original_order_id')} → {result.get('new_order', {}).get('order_id')}",
+                            f"Exchange processed: {tool_input.get('original_order_id')} → {result.get('new_order', {}).get('order_id') if result else 'N/A'}",
                             extra={
                                 'session_id': self.session_id,
                                 'tool_name': tool_name,
                                 'original_order_id': tool_input.get('original_order_id'),
-                                'new_order_id': result.get('new_order', {}).get('order_id'),
+                                'new_order_id': result.get('new_order', {}).get('order_id') if result else None,
                                 'new_book_id': tool_input.get('new_book_id'),
                                 'new_book_title': tool_input.get('new_book_title'),
                                 'customer_id': tool_input.get('customer_id'),
-                                'exchange_status': result.get('status'),
-                                'return_txn_id': result.get('return_transaction', {}).get('transaction_id'),
-                                'payment_txn_id': result.get('payment', {}).get('transaction_id'),
-                                'price_difference': result.get('payment', {}).get('price_difference'),
+                                'exchange_status': result.get('status') if result else None,
+                                'return_txn_id': result.get('return_transaction', {}).get('transaction_id') if result else None,
+                                'payment_txn_id': result.get('payment', {}).get('transaction_id') if result else None,
+                                'price_difference': result.get('payment', {}).get('price_difference') if result else None,
                                 'event_type': 'TOOL_RESULT'
                             }
                         )
 
-                        # Record decision to audit ledger
-                        decision_id = self.precedent_used.get('decision_id') if self.precedent_used else None
-                        person_id = self.precedent_used.get('person_id') if self.precedent_used else None
+                        # Record decision to audit ledger only if exchange was actually processed
+                        # (not blocked by a code gate)
+                        if result and not result.get("error"):
+                            decision_id = self.precedent_used.get('decision_id') if self.precedent_used else None
+                            person_id = self.precedent_used.get('person_id') if self.precedent_used else None
 
-                        EnterpriseServices.record_decision_to_ledger(
-                            order_id=tool_input.get("original_order_id"),
-                            agent_decision="EXCHANGE",
-                            decision_id=decision_id,
-                            person_id=person_id,
-                            rationale=f"Exchange for {tool_input.get('new_book_title')}"
-                        )
+                            EnterpriseServices.record_decision_to_ledger(
+                                order_id=tool_input.get("original_order_id"),
+                                agent_decision="EXCHANGE",
+                                decision_id=decision_id,
+                                person_id=person_id,
+                                rationale=f"Exchange for {tool_input.get('new_book_title')}"
+                            )
 
                     else:
                         logger.error(f"Unknown tool called: {tool_name}")
